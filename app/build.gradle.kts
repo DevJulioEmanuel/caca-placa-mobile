@@ -10,7 +10,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.cacaplaca"
+        applicationId = "br.com.cacaplaca"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
@@ -52,6 +52,11 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
-    implementation(libs.osmdroid.android)
-    implementation(libs.osm.android.compose)
+    implementation(libs.play.services.location)
+    implementation(libs.androidx.preference.ktx)
+
+    implementation("org.osmdroid:osmdroid-android:6.1.16")
+
+    implementation("tech.utsmankece:osm-android-compose:0.0.5")
+
 }
