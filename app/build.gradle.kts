@@ -10,7 +10,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.cacaplaca"
+        applicationId = "br.com.cacaplaca"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
@@ -39,6 +39,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
@@ -51,4 +52,18 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    implementation(libs.play.services.location)
+    implementation(libs.androidx.preference.ktx)
+
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+
+    //não passar para o libs.version(não sei pq não tá funcionando qnd passo pra lá)
+    implementation("org.osmdroid:osmdroid-android:6.1.16")
+
+    implementation("tech.utsmankece:osm-android-compose:0.0.5")
+
 }
