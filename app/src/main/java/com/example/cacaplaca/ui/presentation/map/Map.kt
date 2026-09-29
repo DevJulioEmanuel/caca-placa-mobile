@@ -34,8 +34,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory
+import org.mapsforge.map.rendertheme.InternalRenderTheme
 import org.osmdroid.config.Configuration
+import org.osmdroid.mapsforge.MapsForgeTileProvider
 import org.osmdroid.mapsforge.MapsForgeTileSource
+import org.osmdroid.tileprovider.util.SimpleRegisterReceiver
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
@@ -78,18 +81,28 @@ fun Map(
     }
 
     Configuration.getInstance().userAgentValue = context.packageName
+    Configuration.getInstance().osmdroidBasePath = File(context.cacheDir, "osmdroid")
+    Configuration.getInstance().osmdroidTileCache = File(context.cacheDir, "osmdroid/tiles")
 
     LaunchedEffect(Unit) {
         AndroidGraphicFactory.createInstance(context.applicationContext)
 
         val mapFile = File(context.filesDir, "quixada-ceara.map")
 
-        if (!mapFile.exists()) {
+        if (!mapFile.exists() || mapFile.length() == 0L) {
             copyAssetToFile(context, "quixada-ceara.map", mapFile)
         }
 
-        if (mapFile.exists()) {
-            mapsForgeTileSource = MapsForgeTileSource.createFromFiles(arrayOf(mapFile))
+        if (mapFile.exists() && mapFile.length() > 0) {
+            try {
+                mapsForgeTileSource = MapsForgeTileSource.createFromFiles(
+                    arrayOf(mapFile),
+                    InternalRenderTheme.DEFAULT,
+                    "TemaQuixada"
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
         isLoadingMap = false
@@ -104,10 +117,7 @@ fun Map(
             viewModel.getLocation()
         } else {
             permissionLauncher.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                )
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
             )
         }
     }
@@ -119,10 +129,20 @@ fun Map(
             AndroidView(
                 modifier = Modifier.fillMaxSize(),
                 factory = { ctx ->
-                    MapView(ctx).apply {
+                    val forgeProvider = MapsForgeTileProvider(
+                        SimpleRegisterReceiver(ctx),
+                        mapsForgeTileSource,
+                        null
+                    )
+                    MapView(ctx, forgeProvider).apply {
                         setUseDataConnection(false)
                         setMultiTouchControls(true)
                         zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
+
+                        // Define o centro inicial em Quixadá enquanto o GPS não responde
+                        val quixada = GeoPoint(-4.9704, -39.0163)
+                        controller.setZoom(15.0)
+                        controller.setCenter(quixada)
 
                         locationMarkerRef = Marker(this).apply {
                             icon = locationMarkerIcon
@@ -140,7 +160,6 @@ fun Map(
 
                     if (uiState.isLocationAvailable) {
                         val userGeoPoint = GeoPoint(uiState.latitude, uiState.longitude)
-
                         locationMarkerRef?.position = userGeoPoint
 
                         if (!hasCenteredOnUser) {
@@ -148,7 +167,6 @@ fun Map(
                             view.controller.setCenter(userGeoPoint)
                             hasCenteredOnUser = true
                         }
-
                         view.invalidate()
                     }
                 }
@@ -170,7 +188,7 @@ fun Map(
         ) {
             Icon(
                 imageVector = Icons.Default.MyLocation,
-                contentDescription = "Voltar para minha localização"
+                contentDescription = "Voltar para a minha localização"
             )
         }
     }
@@ -186,6 +204,9 @@ suspend fun copyAssetToFile(context: Context, assetName: String, destinationFile
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            if (destinationFile.exists()) {
+                destinationFile.delete()
+            }
         }
     }
 }
