@@ -62,7 +62,10 @@ dependencies {
     implementation(libs.koin.androidx.compose)
 
     //não passar para o libs.version(não sei pq não tá funcionando qnd passo pra lá)
-    implementation("org.osmdroid:osmdroid-android:6.1.16")
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
+    implementation("org.osmdroid:osmdroid-mapsforge:6.1.20")
+    implementation("org.mapsforge:mapsforge-map-android:0.25.0")
+    implementation("org.slf4j:slf4j-android:1.7.36")
 
     implementation("tech.utsmankece:osm-android-compose:0.0.5")
 

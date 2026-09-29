@@ -1,11 +1,21 @@
 package com.example.cacaplaca.ui.presentation.map
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -13,27 +23,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Box
-import androidx.compose.ui.draw.alpha
-import androidx.core.app.ActivityCompat
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.utsman.osmandcompose.MapProperties
-import com.utsman.osmandcompose.Marker
-import com.utsman.osmandcompose.OpenStreetMap
-import com.utsman.osmandcompose.ZoomButtonVisibility
-import com.utsman.osmandcompose.rememberCameraState
-import com.utsman.osmandcompose.rememberMarkerState
-import org.osmdroid.util.GeoPoint
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
+import org.mapsforge.map.android.graphics.AndroidGraphicFactory
+import org.osmdroid.config.Configuration
+import org.osmdroid.mapsforge.MapsForgeTileSource
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.CustomZoomButtonsController
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
+import java.io.File
+import java.io.FileOutputStream
 
 @Composable
 fun Map(
@@ -42,7 +50,13 @@ fun Map(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
+
     var hasCenteredOnUser by remember { mutableStateOf(false) }
+    var mapsForgeTileSource by remember { mutableStateOf<MapsForgeTileSource?>(null) }
+    var isLoadingMap by remember { mutableStateOf(true) }
+
+    var mapViewRef by remember { mutableStateOf<MapView?>(null) }
+    var locationMarkerRef by remember { mutableStateOf<Marker?>(null) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -54,13 +68,6 @@ fun Map(
         }
     }
 
-    val cameraState = rememberCameraState {
-        geoPoint = GeoPoint(0.0, 0.0)
-        zoom = 16.0
-    }
-    val markerState = rememberMarkerState(
-        geoPoint = GeoPoint(0.0, 0.0)
-    )
     val locationMarkerIcon = remember {
         GradientDrawable().apply {
             shape = GradientDrawable.OVAL
@@ -70,13 +77,27 @@ fun Map(
         }
     }
 
+    Configuration.getInstance().userAgentValue = context.packageName
+
     LaunchedEffect(Unit) {
+        AndroidGraphicFactory.createInstance(context.applicationContext)
+
+        val mapFile = File(context.filesDir, "quixada-ceara.map")
+
+        if (!mapFile.exists()) {
+            copyAssetToFile(context, "quixada-ceara.map", mapFile)
+        }
+
+        if (mapFile.exists()) {
+            mapsForgeTileSource = MapsForgeTileSource.createFromFiles(arrayOf(mapFile))
+        }
+
+        isLoadingMap = false
+
         val hasLocationPermission = ActivityCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            context, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_COARSE_LOCATION
+            context, Manifest.permission.ACCESS_COARSE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
         if (hasLocationPermission) {
@@ -91,37 +112,55 @@ fun Map(
         }
     }
 
-    LaunchedEffect(uiState.isLocationAvailable) {
-        if (uiState.isLocationAvailable && !hasCenteredOnUser) {
-            cameraState.geoPoint = GeoPoint(uiState.latitude, uiState.longitude)
-            hasCenteredOnUser = true
-        }
-    }
-
-    LaunchedEffect(uiState.latitude, uiState.longitude, uiState.isLocationAvailable) {
-        if (uiState.isLocationAvailable) {
-            markerState.geoPoint = GeoPoint(uiState.latitude, uiState.longitude)
-        }
-    }
-
     Box(modifier = modifier.fillMaxSize()) {
-        OpenStreetMap(
-            modifier = Modifier.fillMaxSize(),
-            cameraState = cameraState,
-            properties = MapProperties(
-                zoomButtonVisibility = ZoomButtonVisibility.NEVER,
+        if (isLoadingMap) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        } else if (mapsForgeTileSource != null) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { ctx ->
+                    MapView(ctx).apply {
+                        setUseDataConnection(false)
+                        setMultiTouchControls(true)
+                        zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
+
+                        locationMarkerRef = Marker(this).apply {
+                            icon = locationMarkerIcon
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                        }
+                        overlays.add(locationMarkerRef)
+
+                        mapViewRef = this
+                    }
+                },
+                update = { view ->
+                    if (view.tileProvider.tileSource != mapsForgeTileSource) {
+                        view.setTileSource(mapsForgeTileSource)
+                    }
+
+                    if (uiState.isLocationAvailable) {
+                        val userGeoPoint = GeoPoint(uiState.latitude, uiState.longitude)
+
+                        locationMarkerRef?.position = userGeoPoint
+
+                        if (!hasCenteredOnUser) {
+                            view.controller.setZoom(16.0)
+                            view.controller.setCenter(userGeoPoint)
+                            hasCenteredOnUser = true
+                        }
+
+                        view.invalidate()
+                    }
+                }
             )
-        ) {
-            Marker(
-                state = markerState,
-                icon = locationMarkerIcon
-            )
+        } else {
+            Text("Erro ao carregar o mapa offline.", modifier = Modifier.align(Alignment.Center))
         }
 
         FloatingActionButton(
             onClick = {
                 if (uiState.isLocationAvailable) {
-                    cameraState.geoPoint = GeoPoint(uiState.latitude, uiState.longitude)
+                    mapViewRef?.controller?.animateTo(GeoPoint(uiState.latitude, uiState.longitude))
                 }
             },
             modifier = Modifier
@@ -133,6 +172,20 @@ fun Map(
                 imageVector = Icons.Default.MyLocation,
                 contentDescription = "Voltar para minha localização"
             )
+        }
+    }
+}
+
+suspend fun copyAssetToFile(context: Context, assetName: String, destinationFile: File) {
+    withContext(Dispatchers.IO) {
+        try {
+            context.assets.open(assetName).use { inputStream ->
+                FileOutputStream(destinationFile).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }
