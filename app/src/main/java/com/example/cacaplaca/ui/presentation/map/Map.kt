@@ -2,38 +2,40 @@ package com.example.cacaplaca.ui.presentation.map
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Box
-import androidx.compose.ui.draw.alpha
-import androidx.core.app.ActivityCompat
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
-import com.utsman.osmandcompose.MapProperties
-import com.utsman.osmandcompose.Marker
-import com.utsman.osmandcompose.OpenStreetMap
-import com.utsman.osmandcompose.ZoomButtonVisibility
-import com.utsman.osmandcompose.rememberCameraState
-import com.utsman.osmandcompose.rememberMarkerState
-import org.osmdroid.util.GeoPoint
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import org.koin.androidx.compose.koinViewModel
+import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.camera.CameraUpdateFactory
+import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.maps.MapLibreMap
+import org.maplibre.android.maps.MapView
+import org.maplibre.android.maps.Style
 
 @Composable
 fun Map(
@@ -41,8 +43,14 @@ fun Map(
     viewModel: MapViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val uiState by viewModel.uiState.collectAsState()
+
+    var mapLibreMapRef by remember { mutableStateOf<MapLibreMap?>(null) }
     var hasCenteredOnUser by remember { mutableStateOf(false) }
+
+    val mapView = remember { MapView(context) }
+
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -54,74 +62,74 @@ fun Map(
         }
     }
 
-    val cameraState = rememberCameraState {
-        geoPoint = GeoPoint(0.0, 0.0)
-        zoom = 16.0
-    }
-    val markerState = rememberMarkerState(
-        geoPoint = GeoPoint(0.0, 0.0)
-    )
-    val locationMarkerIcon = remember {
-        GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
-            setColor(Color.rgb(30, 115, 255))
-            setStroke(4, Color.WHITE)
-            setSize(48, 48)
-        }
-    }
-
     LaunchedEffect(Unit) {
-        val hasLocationPermission = ActivityCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_COARSE_LOCATION
+        verificarEBaixarMapaOffline(context)
+        val hasPermission = ActivityCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
-        if (hasLocationPermission) {
+        if (hasPermission) {
             viewModel.getLocation()
         } else {
             permissionLauncher.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                )
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
             )
         }
     }
 
-    LaunchedEffect(uiState.isLocationAvailable) {
-        if (uiState.isLocationAvailable && !hasCenteredOnUser) {
-            cameraState.geoPoint = GeoPoint(uiState.latitude, uiState.longitude)
-            hasCenteredOnUser = true
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> mapView.onStart()
+                Lifecycle.Event.ON_RESUME -> mapView.onResume()
+                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+                Lifecycle.Event.ON_STOP -> mapView.onStop()
+                Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
+                else -> {}
+            }
         }
-    }
+        lifecycleOwner.lifecycle.addObserver(observer)
 
-    LaunchedEffect(uiState.latitude, uiState.longitude, uiState.isLocationAvailable) {
-        if (uiState.isLocationAvailable) {
-            markerState.geoPoint = GeoPoint(uiState.latitude, uiState.longitude)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            mapView.onDestroy()
         }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        OpenStreetMap(
+        AndroidView(
             modifier = Modifier.fillMaxSize(),
-            cameraState = cameraState,
-            properties = MapProperties(
-                zoomButtonVisibility = ZoomButtonVisibility.NEVER,
-            )
-        ) {
-            Marker(
-                state = markerState,
-                icon = locationMarkerIcon
-            )
-        }
+            factory = { mapView },
+            update = { view ->
+                view.getMapAsync { mapboxMap ->
+                    mapLibreMapRef = mapboxMap
 
+                    // Estilo - Online para teste inicial
+                    mapboxMap.setStyle(Style.Builder().fromUri("https://basemaps.cartocdn.com/gl/positron-gl-style/style.json")) { style ->
+
+                        val quixada = LatLng(-4.9704, -39.0163)
+                        mapboxMap.cameraPosition = CameraPosition.Builder()
+                            .target(quixada)
+                            .zoom(14.0)
+                            .build()
+                    }
+                }
+            }
+        )
+
+        // Botão de Centralizar
         FloatingActionButton(
             onClick = {
-                if (uiState.isLocationAvailable) {
-                    cameraState.geoPoint = GeoPoint(uiState.latitude, uiState.longitude)
+                if (uiState.isLocationAvailable && mapLibreMapRef != null) {
+                    val userLocation = LatLng(uiState.latitude, uiState.longitude)
+                    mapLibreMapRef?.animateCamera(
+                        CameraUpdateFactory.newCameraPosition(
+                            CameraPosition.Builder()
+                                .target(userLocation)
+                                .zoom(16.0)
+                                .build()
+                        ), 1000
+                    )
                 }
             },
             modifier = Modifier
@@ -131,8 +139,17 @@ fun Map(
         ) {
             Icon(
                 imageVector = Icons.Default.MyLocation,
-                contentDescription = "Voltar para minha localização"
+                contentDescription = "Voltar para a minha localização"
             )
+        }
+    }
+
+    // Atualiza a câmara quando o GPS responder (Executa apenas uma vez)
+    LaunchedEffect(uiState.isLocationAvailable, mapLibreMapRef) {
+        if (uiState.isLocationAvailable && mapLibreMapRef != null && !hasCenteredOnUser) {
+            val userLocation = LatLng(uiState.latitude, uiState.longitude)
+            mapLibreMapRef?.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 16.0))
+            hasCenteredOnUser = true
         }
     }
 }

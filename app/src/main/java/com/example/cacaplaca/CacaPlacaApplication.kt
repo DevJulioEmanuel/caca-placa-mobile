@@ -8,6 +8,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
+import org.maplibre.android.MapLibre // NOVO IMPORT
 
 private val appModule = module {
     singleOf(::LocationRepository)
@@ -17,6 +18,8 @@ private val appModule = module {
 class CacaPlacaApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+
+        MapLibre.getInstance(this)
 
         startKoin {
             androidContext(this@CacaPlacaApplication)

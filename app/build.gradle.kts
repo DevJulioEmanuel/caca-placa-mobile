@@ -61,9 +61,9 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
 
-    //não passar para o libs.version(não sei pq não tá funcionando qnd passo pra lá)
-    implementation("org.osmdroid:osmdroid-android:6.1.16")
-
-    implementation("tech.utsmankece:osm-android-compose:0.0.5")
+    //MAPLIBRE
+    implementation("org.maplibre.gl:android-sdk:11.4.0")
+    // Plugin oficial para desenhar os ícones/pins das placas facilmente
+    implementation("org.maplibre.gl:android-plugin-annotation-v9:3.0.1")
 
 }
