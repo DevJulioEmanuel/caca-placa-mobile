@@ -42,6 +42,8 @@ import org.maplibre.android.style.layers.CircleLayer
 import org.maplibre.android.style.layers.SymbolLayer
 import org.maplibre.android.style.layers.PropertyFactory.*
 import org.maplibre.android.style.expressions.Expression.*
+import androidx.core.content.ContextCompat
+import com.example.cacaplaca.R
 import android.graphics.Color
 import java.net.URI
 import java.net.URISyntaxException
@@ -116,6 +118,13 @@ fun Map(
                     // Estilo - Online para teste inicial
                     mapboxMap.setStyle(Style.Builder().fromUri("https://basemaps.cartocdn.com/gl/positron-gl-style/style.json")) { style ->
 
+                        ContextCompat.getDrawable(context, R.drawable.ic_cluster)?.let {
+                            style.addImage("cluster-icon", it)
+                        }
+                        ContextCompat.getDrawable(context, R.drawable.ic_placas_vermelhas)?.let {
+                            style.addImage("placa-icon", it)
+                        }
+
                         try {
                             val geoJsonUri = URI("asset://points.geojson")
                             
@@ -130,44 +139,26 @@ fun Map(
                                 )
                             )
                             
-                            // Camada de clusters agrupados (círculos)
+                            // Camada de clusters agrupados (ícone e texto integrados)
                             style.addLayer(
-                                CircleLayer("clusters", "points-source").withProperties(
-                                    circleColor(
-                                        step(
-                                            get("point_count"),
-                                            color(Color.parseColor("#51bbd6")),
-                                            stop(100, color(Color.parseColor("#f1f075"))),
-                                            stop(750, color(Color.parseColor("#f28cb1")))
-                                        )
-                                    ),
-                                    circleRadius(
-                                        step(
-                                            get("point_count"),
-                                            literal(20f),
-                                            stop(100, literal(30f)),
-                                            stop(750, literal(40f))
-                                        )
-                                    )
-                                ).withFilter(has("point_count"))
-                            )
-                            
-                            // Camada para exibir a contagem de pontos no cluster (texto)
-                            style.addLayer(
-                                SymbolLayer("cluster-count", "points-source").withProperties(
+                                SymbolLayer("clusters", "points-source").withProperties(
+                                    iconImage("cluster-icon"),
+                                    iconSize(0.25f),
+                                    iconAllowOverlap(true),
                                     textField(get("point_count")),
                                     textSize(12f),
-                                    textColor(Color.BLACK)
+                                    textColor(Color.WHITE),
+                                    textIgnorePlacement(true),
+                                    textAllowOverlap(true)
                                 ).withFilter(has("point_count"))
                             )
                             
                             // Camada para exibir os pontos individuais quando não estão clusterizados
                             style.addLayer(
-                                CircleLayer("unclustered-points", "points-source").withProperties(
-                                    circleColor(color(Color.parseColor("#11b4da"))),
-                                    circleRadius(8f),
-                                    circleStrokeWidth(2f),
-                                    circleStrokeColor(color(Color.WHITE))
+                                SymbolLayer("unclustered-points", "points-source").withProperties(
+                                    iconImage("placa-icon"),
+                                    iconSize(0.2f),
+                                    iconAllowOverlap(true)
                                 ).withFilter(not(has("point_count")))
                             )
                             
