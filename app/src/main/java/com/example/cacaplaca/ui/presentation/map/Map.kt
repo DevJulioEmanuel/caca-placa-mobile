@@ -36,6 +36,15 @@ import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
+import org.maplibre.android.style.sources.GeoJsonOptions
+import org.maplibre.android.style.sources.GeoJsonSource
+import org.maplibre.android.style.layers.CircleLayer
+import org.maplibre.android.style.layers.SymbolLayer
+import org.maplibre.android.style.layers.PropertyFactory.*
+import org.maplibre.android.style.expressions.Expression.*
+import android.graphics.Color
+import java.net.URI
+import java.net.URISyntaxException
 
 @Composable
 fun Map(
@@ -107,10 +116,69 @@ fun Map(
                     // Estilo - Online para teste inicial
                     mapboxMap.setStyle(Style.Builder().fromUri("https://basemaps.cartocdn.com/gl/positron-gl-style/style.json")) { style ->
 
+                        try {
+                            val geoJsonUri = URI("asset://points.geojson")
+                            
+                            style.addSource(
+                                GeoJsonSource(
+                                    "points-source",
+                                    geoJsonUri,
+                                    GeoJsonOptions()
+                                        .withCluster(true)
+                                        .withClusterMaxZoom(22)
+                                        .withClusterRadius(50)
+                                )
+                            )
+                            
+                            // Camada de clusters agrupados (círculos)
+                            style.addLayer(
+                                CircleLayer("clusters", "points-source").withProperties(
+                                    circleColor(
+                                        step(
+                                            get("point_count"),
+                                            color(Color.parseColor("#51bbd6")),
+                                            stop(100, color(Color.parseColor("#f1f075"))),
+                                            stop(750, color(Color.parseColor("#f28cb1")))
+                                        )
+                                    ),
+                                    circleRadius(
+                                        step(
+                                            get("point_count"),
+                                            literal(20f),
+                                            stop(100, literal(30f)),
+                                            stop(750, literal(40f))
+                                        )
+                                    )
+                                ).withFilter(has("point_count"))
+                            )
+                            
+                            // Camada para exibir a contagem de pontos no cluster (texto)
+                            style.addLayer(
+                                SymbolLayer("cluster-count", "points-source").withProperties(
+                                    textField(get("point_count")),
+                                    textSize(12f),
+                                    textColor(Color.BLACK)
+                                ).withFilter(has("point_count"))
+                            )
+                            
+                            // Camada para exibir os pontos individuais quando não estão clusterizados
+                            style.addLayer(
+                                CircleLayer("unclustered-points", "points-source").withProperties(
+                                    circleColor(color(Color.parseColor("#11b4da"))),
+                                    circleRadius(8f),
+                                    circleStrokeWidth(2f),
+                                    circleStrokeColor(color(Color.WHITE))
+                                ).withFilter(not(has("point_count")))
+                            )
+                            
+                        } catch (e: URISyntaxException) {
+                            e.printStackTrace()
+                        }
+
                         val quixada = LatLng(-4.9704, -39.0163)
                         mapboxMap.cameraPosition = CameraPosition.Builder()
                             .target(quixada)
-                            .zoom(14.0)
+                            .zoom(10.0)
                             .build()
                     }
                 }
