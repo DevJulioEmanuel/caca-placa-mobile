@@ -1,4 +1,5 @@
-package com.example.cacaplaca.ui.presentation.map
+package com.prefeitura.cacaplaca.feature.map
+
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
@@ -33,7 +34,6 @@ fun verificarEBaixarMapaOffline(context: Context) {
 private fun iniciarDownloadQuixada(context: Context, offlineManager: OfflineManager) {
     Toast.makeText(context, "Baixando mapa base para uso offline...", Toast.LENGTH_SHORT).show()
 
-    //AREA DE QUIXADA
     val bounds = LatLngBounds.Builder()
         .include(LatLng(-4.9000, -39.0800))
         .include(LatLng(-5.0400, -38.9300))

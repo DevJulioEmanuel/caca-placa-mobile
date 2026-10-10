@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.cacaplaca"
+    namespace = "com.prefeitura.cacaplaca"
     compileSdk {
         version = release(37)
     }

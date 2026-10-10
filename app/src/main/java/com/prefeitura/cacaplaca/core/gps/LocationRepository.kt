@@ -1,4 +1,4 @@
-package com.example.cacaplaca.data.map
+package com.prefeitura.cacaplaca.core.gps
 
 import android.annotation.SuppressLint
 import android.content.Context

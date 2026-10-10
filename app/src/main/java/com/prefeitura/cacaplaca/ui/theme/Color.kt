@@ -1,4 +1,4 @@
-package com.example.cacaplaca.ui.theme
+package com.prefeitura.cacaplaca.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

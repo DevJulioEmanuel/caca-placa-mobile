@@ -1,4 +1,4 @@
-package com.example.cacaplaca.ui.presentation.map
+package com.prefeitura.cacaplaca.feature.map
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -117,7 +117,6 @@ fun Map(
             }
         )
 
-        // Botão de Centralizar
         FloatingActionButton(
             onClick = {
                 if (uiState.isLocationAvailable && mapLibreMapRef != null) {
@@ -144,7 +143,6 @@ fun Map(
         }
     }
 
-    // Atualiza a câmara quando o GPS responder (Executa apenas uma vez)
     LaunchedEffect(uiState.isLocationAvailable, mapLibreMapRef) {
         if (uiState.isLocationAvailable && mapLibreMapRef != null && !hasCenteredOnUser) {
             val userLocation = LatLng(uiState.latitude, uiState.longitude)

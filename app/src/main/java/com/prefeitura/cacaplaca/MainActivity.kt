@@ -1,4 +1,4 @@
-package com.example.cacaplaca
+package com.prefeitura.cacaplaca
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.ui.Modifier
-import com.example.cacaplaca.ui.presentation.map.Map
-import com.example.cacaplaca.ui.theme.CacaPlacaTheme
+import com.prefeitura.cacaplaca.feature.map.Map
+import com.prefeitura.cacaplaca.ui.theme.CacaPlacaTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
