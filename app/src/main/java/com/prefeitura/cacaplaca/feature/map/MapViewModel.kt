@@ -1,8 +1,8 @@
-package com.example.cacaplaca.ui.presentation.map
+package com.prefeitura.cacaplaca.feature.map
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.cacaplaca.data.map.LocationRepository
+import com.prefeitura.cacaplaca.core.gps.LocationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
