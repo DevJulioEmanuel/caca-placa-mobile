@@ -29,6 +29,9 @@ fun AppNavigation() {
         composable("recover_password") {
             RecoverPasswordScreen(
                 onBack = { navController.popBackStack() },
+                onNavigateToLogin = { 
+                    navController.popBackStack("login", inclusive = false) 
+                },
                 onSendInstructions = { navController.navigate("new_password") }
             )
         }
@@ -36,6 +39,9 @@ fun AppNavigation() {
         composable("new_password") {
             NewPasswordScreen(
                 onBack = { navController.popBackStack() },
+                onNavigateToLogin = { 
+                    navController.popBackStack("login", inclusive = false) 
+                },
                 onSavePassword = { 
                     navController.navigate("password_changed") {
                         popUpTo("recover_password") { inclusive = true }

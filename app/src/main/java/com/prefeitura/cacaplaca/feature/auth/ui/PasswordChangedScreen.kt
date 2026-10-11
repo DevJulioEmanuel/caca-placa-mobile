@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -30,7 +29,6 @@ fun PasswordChangedScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Imagem de fundo (Mapa)
         Image(
             painter = painterResource(id = R.drawable.bg_map_auth),
             contentDescription = null,
@@ -39,7 +37,6 @@ fun PasswordChangedScreen(
             alpha = 0.6f
         )
 
-        // Conteúdo centralizado (Cabeçalho + Cartão)
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -49,17 +46,6 @@ fun PasswordChangedScreen(
             verticalArrangement = Arrangement.Center
         ) {
 
-            // 1. Área do Cabeçalho (Fora do cartão)
-            Image(
-                painter = painterResource(id = R.drawable.ic_logo_cacaplaca),
-                contentDescription = "Logo Caça Placas",
-                modifier = Modifier.size(150.dp),
-                contentScale = ContentScale.Fit
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 2. Área do Cartão Branco
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -3,10 +3,14 @@ package com.prefeitura.cacaplaca.feature.auth.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -19,11 +23,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -37,20 +45,58 @@ import com.prefeitura.cacaplaca.ui.theme.WarningBlueIcon
 @Composable
 fun NewPasswordScreen(
     onBack: () -> Unit,
+    onNavigateToLogin: () -> Unit,
     onSavePassword: () -> Unit
 ) {
+    val focusManager = LocalFocusManager.current
+
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
 
     var confirmPassword by remember { mutableStateOf("") }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
+
+    fun validateAndSave() {
+        var isValid = true
+
+        if (password.isBlank()) {
+            passwordError = "A senha não pode estar vazia"
+            isValid = false
+        } else if (password.length < 5) {
+            passwordError = "A senha deve ter no mínimo 5 caracteres"
+            isValid = false
+        } else if (password.contains(" ")) {
+            passwordError = "A senha não pode conter espaços"
+            isValid = false
+        } else {
+            passwordError = null
+        }
+
+        if (confirmPassword.isBlank()) {
+            confirmPasswordError = "A confirmação de senha não pode estar vazia"
+            isValid = false
+        } else if (confirmPassword != password) {
+            confirmPasswordError = "As senhas não coincidem"
+            isValid = false
+        } else {
+            confirmPasswordError = null
+        }
+
+        if (isValid) {
+            onSavePassword()
+        }
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { focusManager.clearFocus() })
+            }
     ) {
-        // Imagem de fundo (Mapa)
         Image(
             painter = painterResource(id = R.drawable.bg_map_auth),
             contentDescription = null,
@@ -59,7 +105,6 @@ fun NewPasswordScreen(
             alpha = 0.6f
         )
 
-        // Botão Voltar
         IconButton(
             onClick = onBack,
             modifier = Modifier
@@ -74,38 +119,40 @@ fun NewPasswordScreen(
             )
         }
 
-        // Conteúdo centralizado (Cabeçalho + Cartão)
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
+                .imePadding()
                 .systemBarsPadding()
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
         ) {
+            val screenHeight = maxHeight
 
-            // 1. Área do Cabeçalho (Fora do cartão)
-            Image(
-                painter = painterResource(id = R.drawable.ic_logo_cacaplaca),
-                contentDescription = "Logo Caça Placas",
-                modifier = Modifier.size(150.dp),
-                contentScale = ContentScale.Fit
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 2. Área do Cartão Branco
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(24.dp)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = screenHeight),
+                    contentAlignment = Alignment.Center
                 ) {
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 48.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .padding(24.dp)
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
 
                     Box(
                         modifier = Modifier
@@ -143,10 +190,20 @@ fun NewPasswordScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
                             value = password,
-                            onValueChange = { password = it },
+                            onValueChange = {
+                                password = it
+                                if (passwordError != null) passwordError = null
+                            },
                             placeholder = { Text("Insira a nova senha...") },
                             singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            isError = passwordError != null,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Next
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                            ),
                             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(8.dp),
@@ -162,6 +219,14 @@ fun NewPasswordScreen(
                                 focusedBorderColor = MaterialTheme.colorScheme.primary
                             )
                         )
+                        if (passwordError != null) {
+                            Text(
+                                text = passwordError!!,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                            )
+                        }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -173,10 +238,23 @@ fun NewPasswordScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
                             value = confirmPassword,
-                            onValueChange = { confirmPassword = it },
+                            onValueChange = {
+                                confirmPassword = it
+                                if (confirmPasswordError != null) confirmPasswordError = null
+                            },
                             placeholder = { Text("Repita a nova senha...") },
                             singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            isError = confirmPasswordError != null,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Done
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onDone = {
+                                    focusManager.clearFocus()
+                                    validateAndSave()
+                                }
+                            ),
                             visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(8.dp),
@@ -192,6 +270,14 @@ fun NewPasswordScreen(
                                 focusedBorderColor = MaterialTheme.colorScheme.primary
                             )
                         )
+                        if (confirmPasswordError != null) {
+                            Text(
+                                text = confirmPasswordError!!,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -227,7 +313,10 @@ fun NewPasswordScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
-                        onClick = onSavePassword,
+                        onClick = {
+                            focusManager.clearFocus()
+                            validateAndSave()
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
@@ -249,10 +338,27 @@ fun NewPasswordScreen(
                             }
                         },
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.clickable { onBack() }
+                        modifier = Modifier.clickable { onNavigateToLogin() }
                     )
                 }
             }
+        }
+        }
+        }
+
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier
+                .statusBarsPadding()
+                .padding(top = 8.dp, start = 16.dp)
+                .background(MaterialTheme.colorScheme.surface, CircleShape)
+                .size(40.dp)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Voltar",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }

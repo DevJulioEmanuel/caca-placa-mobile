@@ -3,7 +3,6 @@ package com.prefeitura.cacaplaca.feature.auth.data
 import com.google.gson.annotations.SerializedName
 
 data class LoginResponse(
-    @SerializedName("token") val token: String,
-    @SerializedName("agentId") val agentId: String,
-    @SerializedName("name") val name: String
+    @SerializedName("access_token") val accessToken: String,
+    @SerializedName("token_type") val tokenType: String
 )

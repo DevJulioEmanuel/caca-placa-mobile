@@ -3,9 +3,13 @@ package com.prefeitura.cacaplaca.feature.auth.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Visibility
@@ -15,9 +19,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -37,9 +45,39 @@ fun LoginScreen(
     viewModel: AuthViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val focusManager = LocalFocusManager.current
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+
+    fun validateAndLogin() {
+        var isValid = true
+        
+        if (email.isBlank()) {
+            emailError = "O e-mail não pode estar vazio"
+            isValid = false
+        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailError = "Formato de e-mail inválido"
+            isValid = false
+        } else {
+            emailError = null
+        }
+
+        if (password.isBlank()) {
+            passwordError = "A senha não pode estar vazia"
+            isValid = false
+        } else {
+            passwordError = null
+        }
+
+        if (isValid) {
+            viewModel.login(email, password)
+        }
+    }
 
     LaunchedEffect(uiState) {
         if (uiState is AuthState.Success) {
@@ -51,8 +89,10 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { focusManager.clearFocus() })
+            }
     ) {
-        // Imagem de fundo (Mapa)
         Image(
             painter = painterResource(id = R.drawable.bg_map_auth),
             contentDescription = null,
@@ -61,45 +101,49 @@ fun LoginScreen(
             alpha = 0.6f
         )
 
-        // Conteúdo centralizado (Cabeçalho + Cartão)
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .imePadding()
                 .systemBarsPadding()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // 1. Área do Cabeçalho (Fora do cartão)
+            Spacer(modifier = Modifier.weight(1f))
+
             Image(
-                painter = painterResource(id = R.drawable.ic_logo_cacaplaca), // O ícone grande com o pin e a placa
+                painter = painterResource(id = R.drawable.ic_logo_cacaplaca),
                 contentDescription = "Logo Caça Placas",
-                modifier = Modifier.size(250.dp),
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .size(200.dp),
                 contentScale = ContentScale.Fit
             )
 
             Text(
                 text = "CAÇAPLACAS",
+                modifier = Modifier.offset(y = (-35).dp),
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 32.sp
                 ),
-                color = MaterialTheme.colorScheme.primary // Laranja
+                color = MaterialTheme.colorScheme.primary
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
             Text(
                 text = "Sistema de georeferenciamento da\nsinalização de trânsito de Quixadá",
+                modifier = Modifier.offset(y = (-24).dp),
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.primary, // Laranja[cite: 17]
+                color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // 2. Área do Cartão Branco[cite: 17]
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -112,7 +156,6 @@ fun LoginScreen(
                     horizontalAlignment = Alignment.Start
                 ) {
 
-                    // Campo de E-mail[cite: 17]
                     Text(
                         text = "E-mail:",
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
@@ -121,10 +164,20 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = email,
-                        onValueChange = { email = it },
-                        placeholder = { Text("Insira o seu e-mail aqui...") }, // Atualizado[cite: 17]
+                        onValueChange = { 
+                            email = it
+                            if (emailError != null) emailError = null
+                        },
+                        placeholder = { Text("Insira o seu e-mail aqui...") },
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        isError = emailError != null,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                        ),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -132,10 +185,17 @@ fun LoginScreen(
                             focusedBorderColor = MaterialTheme.colorScheme.primary
                         )
                     )
+                    if (emailError != null) {
+                        Text(
+                            text = emailError!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Campo de Senha[cite: 17]
                     Text(
                         text = "Senha:",
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
@@ -144,17 +204,30 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = password,
-                        onValueChange = { password = it },
-                        placeholder = { Text("Insira a sua senha aqui...") }, // Atualizado[cite: 17]
+                        onValueChange = { 
+                            password = it
+                            if (passwordError != null) passwordError = null
+                        },
+                        placeholder = { Text("Insira a sua senha aqui...") },
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        isError = passwordError != null,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { 
+                                focusManager.clearFocus()
+                                validateAndLogin()
+                            }
+                        ),
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp),
                         trailingIcon = {
                             val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(imageVector = image, contentDescription = "Mostrar senha", tint = MaterialTheme.colorScheme.outline) // Ícone cinzento[cite: 17]
+                                Icon(imageVector = image, contentDescription = "Mostrar senha", tint = MaterialTheme.colorScheme.outline)
                             }
                         },
                         colors = OutlinedTextFieldDefaults.colors(
@@ -162,12 +235,19 @@ fun LoginScreen(
                             focusedBorderColor = MaterialTheme.colorScheme.primary
                         )
                     )
+                    if (passwordError != null) {
+                        Text(
+                            text = passwordError!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Link de Esquecer a Senha[cite: 17]
                     Text(
-                        text = "Esqueceu a senha?", // Atualizado[cite: 17]
+                        text = "Esqueceu a senha?",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -184,13 +264,17 @@ fun LoginScreen(
                             text = (uiState as AuthState.Error).message,
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(bottom = 16.dp).align(Alignment.CenterHorizontally)
+                            modifier = Modifier
+                                .padding(bottom = 16.dp)
+                                .align(Alignment.CenterHorizontally)
                         )
                     }
 
-                    // Botão Entrar[cite: 17]
                     Button(
-                        onClick = { viewModel.login(email, password) },
+                        onClick = {
+                            focusManager.clearFocus()
+                            validateAndLogin()
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
@@ -205,7 +289,7 @@ fun LoginScreen(
                                 Text("ENTRAR", style = MaterialTheme.typography.labelLarge)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.Login, // Ícone de setinha[cite: 17]
+                                    imageVector = Icons.AutoMirrored.Filled.Login,
                                     contentDescription = "Ícone de entrar",
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -214,6 +298,8 @@ fun LoginScreen(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.weight(1.5f))
         }
     }
 }
