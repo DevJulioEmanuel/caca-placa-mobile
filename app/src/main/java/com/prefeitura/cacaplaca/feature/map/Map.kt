@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaTextPrimary
@@ -36,6 +37,9 @@ import org.koin.androidx.compose.koinViewModel
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.location.LocationComponentActivationOptions
+import org.maplibre.android.location.modes.CameraMode
+import org.maplibre.android.location.modes.RenderMode
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
@@ -107,14 +111,45 @@ fun Map(
                 view.getMapAsync { mapboxMap ->
                     mapLibreMapRef = mapboxMap
 
-                    // Estilo - Online para teste inicial
-                    mapboxMap.setStyle(Style.Builder().fromUri("https://basemaps.cartocdn.com/gl/positron-gl-style/style.json")) { style ->
+                    mapboxMap.setStyle(
+                        Style.Builder().fromUri(
+                            "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+                        )
+                    ) { style ->
+
                         val quixada = LatLng(-4.9704, -39.0163)
+
                         mapboxMap.cameraPosition = CameraPosition.Builder()
                             .target(quixada)
                             .zoom(14.0)
                             .build()
+
+                        val hasFineLocation = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+
+                        val hasCoarseLocation = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+
+                        if (hasFineLocation || hasCoarseLocation) {
+                            val locationComponent = mapboxMap.locationComponent
+
+                            locationComponent.activateLocationComponent(
+                                LocationComponentActivationOptions.builder(
+                                    context,
+                                    style
+                                ).build()
+                            )
+
+                            locationComponent.isLocationComponentEnabled = true
+                            locationComponent.cameraMode = CameraMode.NONE
+                            locationComponent.renderMode = RenderMode.NORMAL
+                        }
                     }
+
                 }
             }
         )

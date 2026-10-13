@@ -42,11 +42,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.prefeitura.cacaplaca.ui.components.CacaPlacaHeader
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaBackground
-import com.prefeitura.cacaplaca.ui.theme.CacaPlacaNavy
-import com.prefeitura.cacaplaca.ui.theme.CacaPlacaOrange
-import com.prefeitura.cacaplaca.ui.theme.CacaPlacaOrangeDark
-import com.prefeitura.cacaplaca.ui.theme.CacaPlacaOrangeLight
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaTextPrimary
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaTextSecondary
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaTheme
@@ -97,59 +94,9 @@ fun HomeScreenContent(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 20.dp)
             ) {
-                // Logo and Profile Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    // App Logo
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(38.dp)
-                                .clip(CircleShape)
-                                .background(CacaPlacaNavy),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.LocationOn,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(10.dp))
-
-                        Text(
-                            text = "CAÇAPLACAS",
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 16.sp,
-                            color = CacaPlacaOrange,
-                            letterSpacing = 0.5.sp
-                        )
-                    }
-
-                    // Profile Icon Button
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFF1F5F9))
-                            .clickable { onProfileClicked() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Person,
-                            contentDescription = "Perfil",
-                            tint = CacaPlacaTextSecondary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
+                CacaPlacaHeader(
+                    onProfileClicked = onProfileClicked
+                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
