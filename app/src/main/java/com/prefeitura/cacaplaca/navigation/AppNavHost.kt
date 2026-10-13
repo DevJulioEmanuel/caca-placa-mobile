@@ -39,7 +39,7 @@ fun AppNavHost(
                     navController.navigate(Screen.Map)
                 },
                 onProfileClicked = {
-                    navController.navigate(Screen.Profile)
+                    //navController.navigate(Screen.Profile)
                 },
             )
         }
@@ -61,11 +61,7 @@ fun AppNavHost(
         }
 
         composable<Screen.Profile> {
-            Map(
-                onBackClicked = {
-                    navController.popBackStack()
-                }
-            )
+            //TODO
         }
     }
 }

@@ -24,7 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,7 +39,7 @@ import com.prefeitura.cacaplaca.ui.theme.CacaPlacaTextSecondary
 fun ActionCard(
     title: String,
     subtitle: String,
-    icon: ImageVector,
+    icon: Painter,
     isHighlight: Boolean,
     onClick: () -> Unit
 ) {
@@ -55,7 +56,7 @@ fun ActionCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
+                .padding(30.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Left Icon Container
@@ -67,7 +68,7 @@ fun ActionCard(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = icon,
+                    painter = icon,
                     contentDescription = null,
                     tint = CacaPlacaOrange,
                     modifier = Modifier.size(28.dp)
