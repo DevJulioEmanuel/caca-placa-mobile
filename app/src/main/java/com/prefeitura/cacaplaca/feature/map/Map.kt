@@ -119,7 +119,6 @@ fun Map(
             }
         )
 
-        // Botão de Voltar para a Home
         FloatingActionButton(
             onClick = onBackClicked,
             modifier = Modifier
