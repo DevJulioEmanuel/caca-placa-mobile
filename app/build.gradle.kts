@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.koin.core)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+    implementation(libs.androidx.navigation.compose)
 
     //MAPLIBRE
     implementation("org.maplibre.gl:android-sdk:11.4.0")
