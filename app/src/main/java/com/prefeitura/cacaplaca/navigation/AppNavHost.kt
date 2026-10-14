@@ -16,12 +16,22 @@ import com.prefeitura.cacaplaca.feature.auth.ui.RecoverPasswordScreen
 import com.prefeitura.cacaplaca.feature.home.ui.HomeScreen
 import com.prefeitura.cacaplaca.feature.map.Map
 
+import androidx.lifecycle.Lifecycle
+
+fun NavHostController.safePopBackStack() {
+    val currentEntry = this.currentBackStackEntry
+    if (currentEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED &&
+        this.previousBackStackEntry != null
+    ) {
+        this.popBackStack()
+    }
+}
+
 @Composable
 fun AppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     startDestination: Screen = Screen.Auth,
-    sessionManager: SessionManager,
 ) {
     NavHost(
         navController = navController,
@@ -47,7 +57,7 @@ fun AppNavHost(
 
         composable<Screen.RecoverPassword> {
             RecoverPasswordScreen(
-                onBack = { navController.popBackStack() },
+                onBack = { navController.safePopBackStack() },
                 onNavigateToLogin = {
                     navController.popBackStack<Screen.Auth>(inclusive = false)
                 },
@@ -59,7 +69,7 @@ fun AppNavHost(
 
         composable<Screen.NewPassword> {
             NewPasswordScreen(
-                onBack = { navController.popBackStack() },
+                onBack = { navController.safePopBackStack() },
                 onNavigateToLogin = {
                     navController.popBackStack<Screen.Auth>(inclusive = false)
                 },
@@ -101,7 +111,7 @@ fun AppNavHost(
         composable<Screen.Map> {
             Map(
                 onBackClicked = {
-                    navController.popBackStack()
+                    navController.safePopBackStack()
                 }
             )
         }
@@ -109,7 +119,7 @@ fun AppNavHost(
         composable<Screen.Registration> {
             Map(
                 onBackClicked = {
-                    navController.popBackStack()
+                    navController.safePopBackStack()
                 }
             )
         }
