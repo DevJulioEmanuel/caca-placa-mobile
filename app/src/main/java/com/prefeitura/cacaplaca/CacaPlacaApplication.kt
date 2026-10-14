@@ -2,6 +2,7 @@ package com.prefeitura.cacaplaca
 
 import android.app.Application
 import com.prefeitura.cacaplaca.di.appModule
+import com.prefeitura.cacaplaca.di.networkModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import org.maplibre.android.MapLibre
@@ -14,7 +15,7 @@ class CacaPlacaApplication : Application() {
 
         startKoin {
             androidContext(this@CacaPlacaApplication)
-            modules(appModule)
+            modules(appModule, networkModule)
         }
     }
 }
