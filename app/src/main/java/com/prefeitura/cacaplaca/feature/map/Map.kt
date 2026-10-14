@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -22,17 +23,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.prefeitura.cacaplaca.ui.theme.CacaPlacaTextPrimary
 import org.koin.androidx.compose.koinViewModel
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.location.LocationComponentActivationOptions
+import org.maplibre.android.location.modes.CameraMode
+import org.maplibre.android.location.modes.RenderMode
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
@@ -40,7 +47,8 @@ import org.maplibre.android.maps.Style
 @Composable
 fun Map(
     modifier: Modifier = Modifier,
-    viewModel: MapViewModel = koinViewModel()
+    viewModel: MapViewModel = koinViewModel(),
+    onBackClicked: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -50,7 +58,6 @@ fun Map(
     var hasCenteredOnUser by remember { mutableStateOf(false) }
 
     val mapView = remember { MapView(context) }
-
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -104,19 +111,64 @@ fun Map(
                 view.getMapAsync { mapboxMap ->
                     mapLibreMapRef = mapboxMap
 
-                    // Estilo - Online para teste inicial
-                    mapboxMap.setStyle(Style.Builder().fromUri("https://basemaps.cartocdn.com/gl/positron-gl-style/style.json")) { style ->
+                    mapboxMap.setStyle(
+                        Style.Builder().fromUri(
+                            "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+                        )
+                    ) { style ->
 
                         val quixada = LatLng(-4.9704, -39.0163)
+
                         mapboxMap.cameraPosition = CameraPosition.Builder()
                             .target(quixada)
                             .zoom(14.0)
                             .build()
+
+                        val hasFineLocation = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+
+                        val hasCoarseLocation = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+
+                        if (hasFineLocation || hasCoarseLocation) {
+                            val locationComponent = mapboxMap.locationComponent
+
+                            locationComponent.activateLocationComponent(
+                                LocationComponentActivationOptions.builder(
+                                    context,
+                                    style
+                                ).build()
+                            )
+
+                            locationComponent.isLocationComponentEnabled = true
+                            locationComponent.cameraMode = CameraMode.NONE
+                            locationComponent.renderMode = RenderMode.NORMAL
+                        }
                     }
+
                 }
             }
         )
 
+        FloatingActionButton(
+            onClick = onBackClicked,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(16.dp),
+            containerColor = Color.White,
+            contentColor = CacaPlacaTextPrimary
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Voltar"
+            )
+        }
+
+        // Botão de Minha Localização
         FloatingActionButton(
             onClick = {
                 if (uiState.isLocationAvailable && mapLibreMapRef != null) {

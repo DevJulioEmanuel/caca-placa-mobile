@@ -1,6 +1,7 @@
 package com.prefeitura.cacaplaca.di
 
 import com.prefeitura.cacaplaca.core.gps.LocationRepository
+import com.prefeitura.cacaplaca.feature.home.ui.HomeViewModel
 import com.prefeitura.cacaplaca.core.session.SessionManager
 import com.prefeitura.cacaplaca.feature.auth.AuthViewModel
 import com.prefeitura.cacaplaca.feature.auth.data.AuthRepository
@@ -14,5 +15,6 @@ val appModule = module {
     singleOf(::SessionManager)
     singleOf(::AuthRepository)
     viewModelOf(::MapViewModel)
+    viewModelOf(::HomeViewModel)
     viewModelOf(::AuthViewModel)
 }
