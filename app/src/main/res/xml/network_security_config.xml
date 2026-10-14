@@ -6,5 +6,7 @@
         <domain includeSubdomains="true">localhost</domain>
         <!-- IP na minha rede (julio)  -->
         <domain includeSubdomains="true">192.168.0.5</domain>
+        <domain includeSubdomains="true">10.10.253.212</domain>
+
     </domain-config>
 </network-security-config>

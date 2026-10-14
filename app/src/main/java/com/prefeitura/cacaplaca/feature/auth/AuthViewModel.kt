@@ -2,6 +2,7 @@ package com.prefeitura.cacaplaca.feature.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.prefeitura.cacaplaca.core.session.SessionManager
 import com.prefeitura.cacaplaca.feature.auth.data.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +31,8 @@ sealed class ResetPasswordState {
 }
 
 class AuthViewModel(
-    private val repository: AuthRepository
+    private val repository: AuthRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AuthState>(AuthState.Idle)
@@ -94,6 +96,11 @@ class AuthViewModel(
                 _resetPasswordState.value = ResetPasswordState.Error(it.message ?: "Erro desconhecido")
             }
         }
+    }
+
+    fun logout() {
+        sessionManager.clearSession()
+        resetState()
     }
 
     fun resetState() {

@@ -81,6 +81,7 @@ fun LoginScreen(
 
     LaunchedEffect(uiState) {
         if (uiState is AuthState.Success) {
+            viewModel.resetState()
             onLoginSuccess()
         }
     }

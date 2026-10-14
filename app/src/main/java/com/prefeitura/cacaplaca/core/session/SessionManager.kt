@@ -14,6 +14,10 @@ class SessionManager(context: Context) {
         return prefs.getString(KEY_TOKEN, null)
     }
 
+    fun isLoggedIn(): Boolean {
+        return !getToken().isNullOrBlank()
+    }
+
     fun clearSession() {
         prefs.edit().clear().apply()
     }
