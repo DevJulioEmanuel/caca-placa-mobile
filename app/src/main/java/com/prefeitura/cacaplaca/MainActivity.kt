@@ -28,14 +28,11 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .safeDrawingPadding(),
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     AppNavHost(
                         modifier = Modifier.fillMaxSize(),
                         startDestination = startDestination,
-                        sessionManager = sessionManager,
                     )
                 }
             }

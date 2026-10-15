@@ -105,20 +105,6 @@ fun NewPasswordScreen(
             alpha = 0.6f
         )
 
-        IconButton(
-            onClick = onBack,
-            modifier = Modifier
-                .padding(top = 48.dp, start = 16.dp)
-                .background(MaterialTheme.colorScheme.surface, CircleShape)
-                .size(40.dp)
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Voltar",
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()

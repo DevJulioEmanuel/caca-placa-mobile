@@ -4,6 +4,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -93,6 +94,7 @@ fun AppNavHost(
 
         composable<Screen.Home> {
             HomeScreen(
+                modifier = Modifier.safeDrawingPadding(),
                 onViewPlatesClicked = {
                     navController.navigate(Screen.Map)
                 },
@@ -110,6 +112,7 @@ fun AppNavHost(
 
         composable<Screen.Map> {
             Map(
+                modifier = Modifier.safeDrawingPadding(),
                 onBackClicked = {
                     navController.safePopBackStack()
                 }
@@ -118,6 +121,7 @@ fun AppNavHost(
 
         composable<Screen.Registration> {
             Map(
+                modifier = Modifier.safeDrawingPadding(),
                 onBackClicked = {
                     navController.safePopBackStack()
                 }
