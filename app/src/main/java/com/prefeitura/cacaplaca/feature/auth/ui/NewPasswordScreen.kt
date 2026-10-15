@@ -105,10 +105,12 @@ fun NewPasswordScreen(
             alpha = 0.6f
         )
 
+        // Botão de voltar unificado e com espaçamento para a barra de status
         IconButton(
             onClick = onBack,
             modifier = Modifier
-                .padding(top = 48.dp, start = 16.dp)
+                .statusBarsPadding()
+                .padding(top = 16.dp, start = 16.dp)
                 .background(MaterialTheme.colorScheme.surface, CircleShape)
                 .size(40.dp)
         ) {
@@ -154,211 +156,196 @@ fun NewPasswordScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
 
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("***", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                    }
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("***", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                            }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
-                    Text(
-                        text = "Criar nova senha",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Crie uma nova credencial segura para reestabelecer o acesso ao sistema.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = "Nova senha:",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = password,
-                            onValueChange = {
-                                password = it
-                                if (passwordError != null) passwordError = null
-                            },
-                            placeholder = { Text("Insira a nova senha...") },
-                            singleLine = true,
-                            isError = passwordError != null,
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Password,
-                                imeAction = ImeAction.Next
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                            ),
-                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(8.dp),
-                            leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(20.dp)) },
-                            trailingIcon = {
-                                val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                    Icon(imageVector = image, contentDescription = "Mostrar senha")
-                                }
-                            },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                                focusedBorderColor = MaterialTheme.colorScheme.primary
-                            )
-                        )
-                        if (passwordError != null) {
                             Text(
-                                text = passwordError!!,
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                                text = "Criar nova senha",
+                                style = MaterialTheme.typography.titleLarge
                             )
-                        }
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
 
-                        Text(
-                            text = "Confirmar nova senha:",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = confirmPassword,
-                            onValueChange = {
-                                confirmPassword = it
-                                if (confirmPasswordError != null) confirmPasswordError = null
-                            },
-                            placeholder = { Text("Repita a nova senha...") },
-                            singleLine = true,
-                            isError = confirmPasswordError != null,
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Password,
-                                imeAction = ImeAction.Done
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onDone = {
+                            Text(
+                                text = "Crie uma nova credencial segura para reestabelecer o acesso ao sistema.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
+                                Text(
+                                    text = "Nova senha:",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = password,
+                                    onValueChange = {
+                                        password = it
+                                        if (passwordError != null) passwordError = null
+                                    },
+                                    placeholder = { Text("Insira a nova senha...") },
+                                    singleLine = true,
+                                    isError = passwordError != null,
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.Password,
+                                        imeAction = ImeAction.Next
+                                    ),
+                                    keyboardActions = KeyboardActions(
+                                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                                    ),
+                                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(8.dp),
+                                    leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(20.dp)) },
+                                    trailingIcon = {
+                                        val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                            Icon(imageVector = image, contentDescription = "Mostrar senha")
+                                        }
+                                    },
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                        focusedBorderColor = MaterialTheme.colorScheme.primary
+                                    )
+                                )
+                                if (passwordError != null) {
+                                    Text(
+                                        text = passwordError!!,
+                                        color = MaterialTheme.colorScheme.error,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                Text(
+                                    text = "Confirmar nova senha:",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = confirmPassword,
+                                    onValueChange = {
+                                        confirmPassword = it
+                                        if (confirmPasswordError != null) confirmPasswordError = null
+                                    },
+                                    placeholder = { Text("Repita a nova senha...") },
+                                    singleLine = true,
+                                    isError = confirmPasswordError != null,
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.Password,
+                                        imeAction = ImeAction.Done
+                                    ),
+                                    keyboardActions = KeyboardActions(
+                                        onDone = {
+                                            focusManager.clearFocus()
+                                            validateAndSave()
+                                        }
+                                    ),
+                                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(8.dp),
+                                    leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(20.dp)) },
+                                    trailingIcon = {
+                                        val image = if (confirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                                        IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                                            Icon(imageVector = image, contentDescription = "Mostrar senha")
+                                        }
+                                    },
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                        focusedBorderColor = MaterialTheme.colorScheme.primary
+                                    )
+                                )
+                                if (confirmPasswordError != null) {
+                                    Text(
+                                        text = confirmPasswordError!!,
+                                        color = MaterialTheme.colorScheme.error,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(WarningBlueBackground)
+                                    .padding(16.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Info,
+                                        contentDescription = "Info",
+                                        tint = WarningBlueIcon,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "REQUISITOS DE SEGURANÇA:",
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "• Mínimo de 5 caracteres\n• Não pode haver uso de espaços na senha",
+                                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
+                                    modifier = Modifier.padding(start = 28.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Button(
+                                onClick = {
                                     focusManager.clearFocus()
                                     validateAndSave()
-                                }
-                            ),
-                            visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(8.dp),
-                            leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(20.dp)) },
-                            trailingIcon = {
-                                val image = if (confirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                                IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                                    Icon(imageVector = image, contentDescription = "Mostrar senha")
-                                }
-                            },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                                focusedBorderColor = MaterialTheme.colorScheme.primary
-                            )
-                        )
-                        if (confirmPasswordError != null) {
-                            Text(
-                                text = confirmPasswordError!!,
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(WarningBlueBackground)
-                            .padding(16.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = "Info",
-                                tint = WarningBlueIcon,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "REQUISITOS DE SEGURANÇA:",
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "• Mínimo de 5 caracteres\n• Não pode haver uso de espaços na senha",
-                            style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
-                            modifier = Modifier.padding(start = 28.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Button(
-                        onClick = {
-                            focusManager.clearFocus()
-                            validateAndSave()
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                    ) {
-                        Text("SALVAR NOVA SENHA", style = MaterialTheme.typography.labelLarge)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Text(
-                        text = buildAnnotatedString {
-                            append("Lembrou a senha anterior? ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
-                                append("Voltar ao login")
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(50.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                            ) {
+                                Text("SALVAR NOVA SENHA", style = MaterialTheme.typography.labelLarge)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
                             }
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.clickable { onNavigateToLogin() }
-                    )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Text(
+                                text = buildAnnotatedString {
+                                    append("Lembrou a senha anterior? ")
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
+                                        append("Voltar ao login")
+                                    }
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.clickable { onNavigateToLogin() }
+                            )
+                        }
+                    }
                 }
             }
-        }
-        }
-        }
-
-        IconButton(
-            onClick = onBack,
-            modifier = Modifier
-                .statusBarsPadding()
-                .padding(top = 8.dp, start = 16.dp)
-                .background(MaterialTheme.colorScheme.surface, CircleShape)
-                .size(40.dp)
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Voltar",
-                tint = MaterialTheme.colorScheme.onSurface
-            )
         }
     }
 }

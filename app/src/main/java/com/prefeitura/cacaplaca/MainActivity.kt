@@ -34,8 +34,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     AppNavHost(
                         modifier = Modifier.fillMaxSize(),
-                        startDestination = startDestination,
-                        sessionManager = sessionManager,
+                        startDestination = startDestination
                     )
                 }
             }

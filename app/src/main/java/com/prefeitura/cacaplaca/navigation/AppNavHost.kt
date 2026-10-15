@@ -92,6 +92,8 @@ fun AppNavHost(
         }
 
         composable<Screen.Home> {
+            val authViewModel: com.prefeitura.cacaplaca.feature.auth.AuthViewModel = org.koin.androidx.compose.koinViewModel()
+            
             HomeScreen(
                 onViewPlatesClicked = {
                     navController.navigate(Screen.Map)
@@ -103,7 +105,10 @@ fun AppNavHost(
                     navController.navigate(Screen.Map)
                 },
                 onProfileClicked = {
-                    navController.navigate(Screen.Profile)
+                    authViewModel.logout()
+                    navController.navigate(Screen.Auth) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 },
             )
         }

@@ -27,12 +27,30 @@ android {
             }
         }
     }
+
+    flavorDimensions += "environment"
+    productFlavors {
+        create("remote") {
+            dimension = "environment"
+            resValue("string", "app_name", "CaçaPlaca")
+            buildConfigField("boolean", "IS_MOCK_AUTH", "false")
+        }
+        create("mock") {
+            dimension = "environment"
+            applicationIdSuffix = ".mock"
+            resValue("string", "app_name", "CaçaPlaca (Mock)")
+            buildConfigField("boolean", "IS_MOCK_AUTH", "true")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
     buildFeatures {
         compose = true
+        buildConfig = true
+        resValues = true
     }
 }
 

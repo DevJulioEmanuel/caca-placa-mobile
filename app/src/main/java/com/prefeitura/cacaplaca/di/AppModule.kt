@@ -10,10 +10,22 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
+import com.prefeitura.cacaplaca.BuildConfig
+import com.prefeitura.cacaplaca.feature.auth.data.MockAuthRepository
+import com.prefeitura.cacaplaca.feature.auth.data.RemoteAuthRepository
+
 val appModule = module {
     singleOf(::LocationRepository)
     singleOf(::SessionManager)
-    singleOf(::AuthRepository)
+    
+    single<AuthRepository> {
+        if (BuildConfig.IS_MOCK_AUTH) {
+            MockAuthRepository(get(), get())
+        } else {
+            RemoteAuthRepository(get(), get())
+        }
+    }
+    
     viewModelOf(::MapViewModel)
     viewModelOf(::HomeViewModel)
     viewModelOf(::AuthViewModel)
