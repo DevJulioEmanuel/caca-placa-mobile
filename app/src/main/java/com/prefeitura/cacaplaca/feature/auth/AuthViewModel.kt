@@ -23,13 +23,6 @@ sealed class ForgotPasswordState {
     data class Error(val message: String) : ForgotPasswordState()
 }
 
-sealed class ResetPasswordState {
-    object Idle : ResetPasswordState()
-    object Loading : ResetPasswordState()
-    object Success : ResetPasswordState()
-    data class Error(val message: String) : ResetPasswordState()
-}
-
 class AuthViewModel(
     private val repository: AuthRepository,
     private val sessionManager: SessionManager
@@ -40,9 +33,6 @@ class AuthViewModel(
 
     private val _forgotPasswordState = MutableStateFlow<ForgotPasswordState>(ForgotPasswordState.Idle)
     val forgotPasswordState: StateFlow<ForgotPasswordState> = _forgotPasswordState.asStateFlow()
-
-    private val _resetPasswordState = MutableStateFlow<ResetPasswordState>(ResetPasswordState.Idle)
-    val resetPasswordState: StateFlow<ResetPasswordState> = _resetPasswordState.asStateFlow()
 
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
@@ -80,24 +70,6 @@ class AuthViewModel(
         }
     }
 
-    fun resetPassword(token: String, newPassword: String) {
-        if (token.isBlank() || newPassword.isBlank()) {
-            _resetPasswordState.value = ResetPasswordState.Error("Preencha todos os campos")
-            return
-        }
-
-        _resetPasswordState.value = ResetPasswordState.Loading
-
-        viewModelScope.launch {
-            val result = repository.resetPassword(token, newPassword)
-            result.onSuccess {
-                _resetPasswordState.value = ResetPasswordState.Success
-            }.onFailure {
-                _resetPasswordState.value = ResetPasswordState.Error(it.message ?: "Erro desconhecido")
-            }
-        }
-    }
-
     fun logout() {
         sessionManager.clearSession()
         resetState()
@@ -106,6 +78,5 @@ class AuthViewModel(
     fun resetState() {
         _uiState.value = AuthState.Idle
         _forgotPasswordState.value = ForgotPasswordState.Idle
-        _resetPasswordState.value = ResetPasswordState.Idle
     }
 }

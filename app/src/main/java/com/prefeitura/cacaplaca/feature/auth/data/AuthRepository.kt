@@ -68,21 +68,4 @@ class AuthRepository(
             Result.failure(e)
         }
     }
-
-    suspend fun resetPassword(token: String, newPassword: String): Result<Unit> {
-        return try {
-            val response = api.resetPassword(token, ResetPasswordRequest(newPassword))
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception(extractErrorDetail(response)))
-            }
-        } catch (e: ConnectException) {
-            Result.failure(Exception("Não foi possível conectar ao servidor. Verifique a sua conexão com a internet."))
-        } catch (e: SocketTimeoutException) {
-            Result.failure(Exception("O tempo limite de conexão esgotou. Tente novamente."))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
 }

@@ -7,7 +7,7 @@ import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-val BASE_URL = "http://192.168.100.26:8000/"
+val BASE_URL = "http://192.168.0.6:8000/"
 val networkModule = module {
     single {
         val logging = HttpLoggingInterceptor().apply {

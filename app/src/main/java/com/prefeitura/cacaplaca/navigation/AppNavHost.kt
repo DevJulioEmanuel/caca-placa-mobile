@@ -9,15 +9,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.prefeitura.cacaplaca.core.session.SessionManager
 import com.prefeitura.cacaplaca.feature.auth.ui.LoginScreen
-import com.prefeitura.cacaplaca.feature.auth.ui.NewPasswordScreen
-import com.prefeitura.cacaplaca.feature.auth.ui.PasswordChangedScreen
 import com.prefeitura.cacaplaca.feature.auth.ui.RecoverPasswordScreen
 import com.prefeitura.cacaplaca.feature.home.ui.HomeScreen
 import com.prefeitura.cacaplaca.feature.map.Map
 
 import androidx.lifecycle.Lifecycle
+import com.prefeitura.cacaplaca.feature.auth.ui.EmailSentScreen
 
 fun NavHostController.safePopBackStack() {
     val currentEntry = this.currentBackStackEntry
@@ -62,32 +60,18 @@ fun AppNavHost(
                 onNavigateToLogin = {
                     navController.popBackStack<Screen.Auth>(inclusive = false)
                 },
-                onSendInstructions = {
-                    navController.navigate(Screen.NewPassword)
-                }
-            )
-        }
-
-        composable<Screen.NewPassword> {
-            NewPasswordScreen(
-                onBack = { navController.safePopBackStack() },
-                onNavigateToLogin = {
-                    navController.popBackStack<Screen.Auth>(inclusive = false)
-                },
-                onSavePassword = {
-                    navController.navigate(Screen.PasswordChanged) {
+                onNavigateToEmailSent = {
+                    navController.navigate(Screen.EmailSent) {
                         popUpTo<Screen.RecoverPassword> { inclusive = true }
                     }
                 }
             )
         }
 
-        composable<Screen.PasswordChanged> {
-            PasswordChangedScreen(
+        composable<Screen.EmailSent> {
+            EmailSentScreen(
                 onReturnToLogin = {
-                    navController.navigate(Screen.Auth) {
-                        popUpTo(0) { inclusive = true }
-                    }
+                    navController.popBackStack<Screen.Auth>(inclusive = false)
                 }
             )
         }

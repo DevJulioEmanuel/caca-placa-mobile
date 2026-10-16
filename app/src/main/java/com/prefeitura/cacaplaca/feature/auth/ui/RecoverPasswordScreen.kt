@@ -34,18 +34,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.prefeitura.cacaplaca.R
+import com.prefeitura.cacaplaca.feature.auth.AuthViewModel
+import com.prefeitura.cacaplaca.feature.auth.ForgotPasswordState
 import com.prefeitura.cacaplaca.ui.theme.WarningBlueBackground
 import com.prefeitura.cacaplaca.ui.theme.WarningBlueIcon
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun RecoverPasswordScreen(
     onBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    onSendInstructions: () -> Unit
+    onNavigateToEmailSent: () -> Unit,
+    viewModel: AuthViewModel = koinViewModel()
 ) {
     val focusManager = LocalFocusManager.current
     var email by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf<String?>(null) }
+
+    val forgotPasswordState by viewModel.forgotPasswordState.collectAsState()
 
     fun validateAndSend() {
         var isValid = true
@@ -61,7 +67,14 @@ fun RecoverPasswordScreen(
         }
 
         if (isValid) {
-            onSendInstructions()
+            viewModel.forgotPassword(email)
+        }
+    }
+
+    LaunchedEffect(forgotPasswordState) {
+        if (forgotPasswordState is ForgotPasswordState.Success) {
+            viewModel.resetState()
+            onNavigateToEmailSent()
         }
     }
 
@@ -223,6 +236,16 @@ fun RecoverPasswordScreen(
 
                             Spacer(modifier = Modifier.height(24.dp))
 
+                            if (forgotPasswordState is ForgotPasswordState.Error) {
+                                Text(
+                                    text = (forgotPasswordState as ForgotPasswordState.Error).message,
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(bottom = 16.dp),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+
                             Button(
                                 onClick = {
                                     focusManager.clearFocus()
@@ -231,12 +254,20 @@ fun RecoverPasswordScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(50.dp),
+                                enabled = forgotPasswordState !is ForgotPasswordState.Loading,
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                             ) {
-                                Text("ENVIAR INSTRUÇÕES", style = MaterialTheme.typography.labelLarge)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Icon(imageVector = Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+                                if (forgotPasswordState is ForgotPasswordState.Loading) {
+                                    CircularProgressIndicator(
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                } else {
+                                    Text("ENVIAR INSTRUÇÕES", style = MaterialTheme.typography.labelLarge)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Icon(imageVector = Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+                                }
                             }
 
                             Spacer(modifier = Modifier.height(24.dp))

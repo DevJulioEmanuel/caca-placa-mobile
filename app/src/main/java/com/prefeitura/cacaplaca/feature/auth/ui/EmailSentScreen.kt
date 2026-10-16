@@ -21,7 +21,7 @@ import com.prefeitura.cacaplaca.ui.theme.SuccessGreen
 import com.prefeitura.cacaplaca.ui.theme.SuccessGreenBackground
 
 @Composable
-fun PasswordChangedScreen(
+fun EmailSentScreen(
     onReturnToLogin: () -> Unit
 ) {
     Box(
@@ -75,14 +75,14 @@ fun PasswordChangedScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Text(
-                        text = "Nova senha definida!",
+                        text = "Instruções enviadas!",
                         style = MaterialTheme.typography.titleLarge
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "Retorne a tela inicial para realizar seu login utilizando a sua nova senha.",
+                        text = "Se o e-mail estiver cadastrado, um link de recuperação será enviado. Retorne à tela de login.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center
