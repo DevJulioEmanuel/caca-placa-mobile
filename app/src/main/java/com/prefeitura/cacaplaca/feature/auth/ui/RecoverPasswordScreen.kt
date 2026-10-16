@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.prefeitura.cacaplaca.R
+import com.prefeitura.cacaplaca.feature.auth.AuthEvent
 import com.prefeitura.cacaplaca.feature.auth.AuthViewModel
 import com.prefeitura.cacaplaca.feature.auth.ForgotPasswordState
 import com.prefeitura.cacaplaca.ui.theme.WarningBlueBackground
@@ -48,33 +49,27 @@ fun RecoverPasswordScreen(
     viewModel: AuthViewModel = koinViewModel()
 ) {
     val focusManager = LocalFocusManager.current
+    val snackbarHostState = remember { SnackbarHostState() }
     var email by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf<String?>(null) }
 
     val forgotPasswordState by viewModel.forgotPasswordState.collectAsState()
 
-    fun validateAndSend() {
-        var isValid = true
-
-        if (email.isBlank()) {
-            emailError = "O e-mail não pode estar vazio"
-            isValid = false
-        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            emailError = "Formato de e-mail inválido"
-            isValid = false
-        } else {
-            emailError = null
-        }
-
-        if (isValid) {
-            viewModel.forgotPassword(email)
-        }
-    }
-
-    LaunchedEffect(forgotPasswordState) {
-        if (forgotPasswordState is ForgotPasswordState.Success) {
-            viewModel.resetState()
-            onNavigateToEmailSent()
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is AuthEvent.NavigateToEmailSent -> {
+                    viewModel.resetState()
+                    onNavigateToEmailSent()
+                }
+                is AuthEvent.ShowRecoverFieldError -> {
+                    emailError = event.emailError
+                }
+                is AuthEvent.ShowError -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                else -> Unit
+            }
         }
     }
 
@@ -185,7 +180,7 @@ fun RecoverPasswordScreen(
                                     keyboardActions = KeyboardActions(
                                         onDone = {
                                             focusManager.clearFocus()
-                                            validateAndSend()
+                                            viewModel.forgotPassword(email)
                                         }
                                     ),
                                     modifier = Modifier.fillMaxWidth(),
@@ -236,20 +231,10 @@ fun RecoverPasswordScreen(
 
                             Spacer(modifier = Modifier.height(24.dp))
 
-                            if (forgotPasswordState is ForgotPasswordState.Error) {
-                                Text(
-                                    text = (forgotPasswordState as ForgotPasswordState.Error).message,
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    modifier = Modifier.padding(bottom = 16.dp),
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-
                             Button(
                                 onClick = {
                                     focusManager.clearFocus()
-                                    validateAndSend()
+                                    viewModel.forgotPassword(email)
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -302,5 +287,10 @@ fun RecoverPasswordScreen(
                 tint = MaterialTheme.colorScheme.onSurface
             )
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }

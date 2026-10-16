@@ -29,16 +29,16 @@ class AuthRepository(
         }
     }
 
-    suspend fun login(username: String, password: String): Result<LoginResponse> {
+    private suspend fun <T> safeApiCall(apiCall: suspend () -> Response<T>): Result<T> {
         return try {
-            val response = api.login(username, password)
+            val response = apiCall()
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null) {
-                    sessionManager.saveToken(body.accessToken)
                     Result.success(body)
                 } else {
-                    Result.failure(Exception("Resposta vazia da API"))
+                    @Suppress("UNCHECKED_CAST")
+                    Result.success(Unit as T)
                 }
             } else {
                 Result.failure(Exception(extractErrorDetail(response)))
@@ -52,20 +52,13 @@ class AuthRepository(
         }
     }
 
-    suspend fun forgotPassword(email: String): Result<Unit> {
-        return try {
-            val response = api.forgotPassword(ForgotPasswordRequest(email))
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception(extractErrorDetail(response)))
-            }
-        } catch (e: ConnectException) {
-            Result.failure(Exception("Não foi possível conectar ao servidor. Verifique a sua conexão com a internet."))
-        } catch (e: SocketTimeoutException) {
-            Result.failure(Exception("O tempo limite de conexão esgotou. Tente novamente."))
-        } catch (e: Exception) {
-            Result.failure(e)
+    suspend fun login(username: String, password: String): Result<LoginResponse> {
+        return safeApiCall { api.login(username, password) }.onSuccess { body ->
+            sessionManager.saveToken(body.accessToken)
         }
+    }
+
+    suspend fun forgotPassword(email: String): Result<Unit> {
+        return safeApiCall { api.forgotPassword(ForgotPasswordRequest(email)) }
     }
 }

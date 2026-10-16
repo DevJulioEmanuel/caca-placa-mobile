@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.prefeitura.cacaplaca.R
+import com.prefeitura.cacaplaca.feature.auth.AuthEvent
 import com.prefeitura.cacaplaca.feature.auth.AuthState
 import com.prefeitura.cacaplaca.feature.auth.AuthViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -46,6 +47,7 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -54,35 +56,19 @@ fun LoginScreen(
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
 
-    fun validateAndLogin() {
-        var isValid = true
-        
-        if (email.isBlank()) {
-            emailError = "O e-mail não pode estar vazio"
-            isValid = false
-        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            emailError = "Formato de e-mail inválido"
-            isValid = false
-        } else {
-            emailError = null
-        }
-
-        if (password.isBlank()) {
-            passwordError = "A senha não pode estar vazia"
-            isValid = false
-        } else {
-            passwordError = null
-        }
-
-        if (isValid) {
-            viewModel.login(email, password)
-        }
-    }
-
-    LaunchedEffect(uiState) {
-        if (uiState is AuthState.Success) {
-            viewModel.resetState()
-            onLoginSuccess()
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is AuthEvent.NavigateToHome -> onLoginSuccess()
+                is AuthEvent.ShowLoginFieldError -> {
+                    emailError = event.emailError
+                    passwordError = event.passwordError
+                }
+                is AuthEvent.ShowError -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                else -> Unit
+            }
         }
     }
 
@@ -219,7 +205,7 @@ fun LoginScreen(
                         keyboardActions = KeyboardActions(
                             onDone = { 
                                 focusManager.clearFocus()
-                                validateAndLogin()
+                                viewModel.login(email, password)
                             }
                         ),
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -260,21 +246,10 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    if (uiState is AuthState.Error) {
-                        Text(
-                            text = (uiState as AuthState.Error).message,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier
-                                .padding(bottom = 16.dp)
-                                .align(Alignment.CenterHorizontally)
-                        )
-                    }
-
                     Button(
                         onClick = {
                             focusManager.clearFocus()
-                            validateAndLogin()
+                            viewModel.login(email, password)
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -302,5 +277,10 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.weight(1.5f))
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
