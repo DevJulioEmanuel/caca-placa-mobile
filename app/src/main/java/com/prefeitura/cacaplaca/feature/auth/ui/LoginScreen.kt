@@ -37,6 +37,8 @@ import com.prefeitura.cacaplaca.feature.auth.AuthEvent
 import com.prefeitura.cacaplaca.feature.auth.AuthState
 import com.prefeitura.cacaplaca.feature.auth.AuthViewModel
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,6 +57,10 @@ fun LoginScreen(
 
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
+
+    var clickCount by remember { mutableIntStateOf(0) }
+    var lastClickTime by remember { mutableLongStateOf(0L) }
+    var showIpDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
@@ -105,7 +111,23 @@ fun LoginScreen(
                 contentDescription = "Logo Caça Placas",
                 modifier = Modifier
                     .wrapContentHeight()
-                    .size(200.dp),
+                    .size(200.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        val currentTime = System.currentTimeMillis()
+                        if (currentTime - lastClickTime > 500) {
+                            clickCount = 1
+                        } else {
+                            clickCount++
+                            if (clickCount >= 5) {
+                                showIpDialog = true
+                                clickCount = 0
+                            }
+                        }
+                        lastClickTime = currentTime
+                    },
                 contentScale = ContentScale.Fit
             )
 
@@ -276,6 +298,40 @@ fun LoginScreen(
             }
 
             Spacer(modifier = Modifier.weight(1.5f))
+        }
+
+        if (showIpDialog) {
+            val serverConfigManager: com.prefeitura.cacaplaca.data.ServerConfigManager = koinInject()
+            var currentIp by remember { mutableStateOf(serverConfigManager.getBaseUrl()) }
+            val context = androidx.compose.ui.platform.LocalContext.current
+
+            AlertDialog(
+                onDismissRequest = { showIpDialog = false },
+                title = { Text("Configurar IP do Servidor") },
+                text = {
+                    OutlinedTextField(
+                        value = currentIp,
+                        onValueChange = { currentIp = it },
+                        label = { Text("URL / IP") },
+                        placeholder = { Text("Ex: 192.168.0.15") },
+                        singleLine = true
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        serverConfigManager.setBaseUrl(currentIp)
+                        android.widget.Toast.makeText(context, "IP salvo: ${serverConfigManager.getBaseUrl()}", android.widget.Toast.LENGTH_SHORT).show()
+                        showIpDialog = false
+                    }) {
+                        Text("Salvar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showIpDialog = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
 
         SnackbarHost(
