@@ -16,6 +16,7 @@ import com.prefeitura.cacaplaca.feature.map.Map
 
 import androidx.lifecycle.Lifecycle
 import com.prefeitura.cacaplaca.feature.auth.ui.EmailSentScreen
+import com.prefeitura.cacaplaca.feature.registration.ui.RegistrationScreen
 
 fun NavHostController.safePopBackStack() {
     val currentEntry = this.currentBackStackEntry
@@ -104,10 +105,15 @@ fun AppNavHost(
         }
 
         composable<Screen.Registration> {
-            Map(
+            RegistrationScreen(
                 modifier = Modifier.safeDrawingPadding(),
-                onBackClicked = {
+                onBackToHome = {
                     navController.safePopBackStack()
+                },
+                onNavigateToMap = {
+                    navController.navigate(Screen.Map) {
+                        popUpTo<Screen.Registration> { inclusive = true }
+                    }
                 }
             )
         }

@@ -6,6 +6,8 @@ import com.prefeitura.cacaplaca.core.session.SessionManager
 import com.prefeitura.cacaplaca.feature.auth.AuthViewModel
 import com.prefeitura.cacaplaca.feature.auth.data.AuthRepository
 import com.prefeitura.cacaplaca.feature.map.MapViewModel
+import com.prefeitura.cacaplaca.feature.registration.data.RegistrationRepository
+import com.prefeitura.cacaplaca.feature.registration.ui.RegistrationViewModel
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -17,4 +19,6 @@ val appModule = module {
     viewModelOf(::MapViewModel)
     viewModelOf(::HomeViewModel)
     viewModelOf(::AuthViewModel)
+    singleOf(::RegistrationRepository)
+    viewModelOf(::RegistrationViewModel)
 }
