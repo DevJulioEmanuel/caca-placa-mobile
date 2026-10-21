@@ -11,13 +11,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.prefeitura.cacaplaca.feature.registration.data.*
+import com.prefeitura.cacaplaca.feature.registration.data.EstadoConservacao
+import com.prefeitura.cacaplaca.feature.registration.data.TipoPelicula
+import com.prefeitura.cacaplaca.feature.registration.data.TipoSubstrato
+import com.prefeitura.cacaplaca.feature.registration.data.TipoSuporte
 import com.prefeitura.cacaplaca.feature.registration.ui.components.*
 import com.prefeitura.cacaplaca.ui.theme.*
 
@@ -26,7 +29,7 @@ fun FormStepContent(
     uiState: RegistrationUiState,
     onBackClick: () -> Unit,
     onRemovePhotoClick: () -> Unit,
-    onPlateSelected: (PlateTypeOption) -> Unit,
+    onOpenPlateSelectionClick: () -> Unit,
     onRetryGpsClick: () -> Unit,
     onToggleAdditionalInfo: () -> Unit,
     onAfastamentoChanged: (String) -> Unit,
@@ -37,7 +40,6 @@ fun FormStepContent(
     onSubmitClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var showPlateDropdown by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -60,7 +62,7 @@ fun FormStepContent(
             if (uiState.photo != null) {
                 RegistrationPhotoSection(
                     photo = uiState.photo,
-                    onViewPhotoClick = { /* Abre zoom se necessário */ },
+                    onViewPhotoClick = { /* O view model já gerencia isso internamente no componente */ },
                     onRemovePhotoClick = onRemovePhotoClick
                 )
                 Spacer(modifier = Modifier.height(20.dp))
@@ -95,49 +97,32 @@ fun FormStepContent(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Seletor de Código Contran
-                    Box {
-                        Surface(
+                    // Apenas o botão que abre a tela de seleção (Sem DropdownMenu)
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onOpenPlateSelectionClick() },
+                        shape = RoundedCornerShape(12.dp),
+                        color = SurfaceWhite,
+                        border = BorderStroke(1.dp, OutlineGray)
+                    ) {
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { showPlateDropdown = true },
-                            shape = RoundedCornerShape(12.dp),
-                            color = SurfaceWhite,
-                            border = BorderStroke(1.dp, OutlineGray)
+                                .padding(horizontal = 14.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 14.dp, vertical = 14.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = uiState.selectedPlate?.displayLabel ?: "Selecione a placa",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = CacaPlacaTextPrimary
-                                )
-                                Icon(
-                                    imageVector = Icons.Outlined.Search,
-                                    contentDescription = "Pesquisar",
-                                    tint = CacaPlacaTextSecondary
-                                )
-                            }
-                        }
-
-                        DropdownMenu(
-                            expanded = showPlateDropdown,
-                            onDismissRequest = { showPlateDropdown = false }
-                        ) {
-                            uiState.availablePlates.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option.displayLabel, style = MaterialTheme.typography.bodyMedium) },
-                                    onClick = {
-                                        onPlateSelected(option)
-                                        showPlateDropdown = false
-                                    }
-                                )
-                            }
+                            Text(
+                                text = uiState.selectedPlate?.displayLabel ?: "Selecione a placa",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = CacaPlacaTextPrimary
+                            )
+                            Icon(
+                                imageVector = Icons.Outlined.Search,
+                                contentDescription = "Pesquisar",
+                                tint = CacaPlacaTextSecondary
+                            )
                         }
                     }
 

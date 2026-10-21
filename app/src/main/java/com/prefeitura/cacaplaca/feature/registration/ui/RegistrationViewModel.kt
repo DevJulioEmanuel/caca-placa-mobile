@@ -68,7 +68,10 @@ data class RegistrationUiState(
     val estadoSubstrato: EstadoConservacao? = null,
     val estadoSuporte: EstadoConservacao? = null,
     val saveBannerState: SaveBannerState = SaveBannerState.NONE,
-    val confirmationStatus: ConfirmationSyncStatus = ConfirmationSyncStatus.SYNCED
+    val confirmationStatus: ConfirmationSyncStatus = ConfirmationSyncStatus.SYNCED,
+    val isSelectingPlate: Boolean = false,
+    val plateSearchQuery: String = "",
+    val tempSelectedPlate: PlateTypeOption? = null,
 ) {
     val canSubmitForm: Boolean
         get() = photo != null &&
@@ -170,6 +173,37 @@ class RegistrationViewModel(
 
     fun onEstadoSuporteSelected(estado: EstadoConservacao?) {
         _uiState.update { it.copy(estadoSuporte = estado) }
+    }
+
+    fun onOpenPlateSelection() {
+        _uiState.update {
+            it.copy(
+                isSelectingPlate = true,
+                tempSelectedPlate = it.selectedPlate,
+                plateSearchQuery = ""
+            )
+        }
+    }
+
+    fun onClosePlateSelection() {
+        _uiState.update { it.copy(isSelectingPlate = false) }
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        _uiState.update { it.copy(plateSearchQuery = query) }
+    }
+
+    fun onTempPlateSelected(plate: PlateTypeOption) {
+        _uiState.update { it.copy(tempSelectedPlate = plate) }
+    }
+
+    fun onConfirmPlateSelection() {
+        _uiState.update {
+            it.copy(
+                selectedPlate = it.tempSelectedPlate,
+                isSelectingPlate = false
+            )
+        }
     }
 
     fun onSubmitRegistration(
