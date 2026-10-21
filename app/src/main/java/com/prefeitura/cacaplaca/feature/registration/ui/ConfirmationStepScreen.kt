@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CloudDone
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.*
@@ -109,7 +110,7 @@ fun ConfirmationStepContent(
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    imageVector = Icons.Outlined.CloudOff,
+                                    imageVector = if (isSynced) Icons.Outlined.CloudDone else Icons.Outlined.CloudOff,
                                     contentDescription = null,
                                     tint = SurfaceWhite,
                                     modifier = Modifier.size(18.dp)
