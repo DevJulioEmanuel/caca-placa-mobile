@@ -2,27 +2,36 @@ package com.prefeitura.cacaplaca.feature.registration.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import coil.compose.AsyncImage
 import com.prefeitura.cacaplaca.feature.registration.data.CapturedPhoto
 import com.prefeitura.cacaplaca.ui.theme.*
+import java.io.File
 
 @Composable
 fun RegistrationPhotoSection(
     photo: CapturedPhoto,
-    onViewPhotoClick: () -> Unit,
+    onViewPhotoClick: () -> Unit = {},
     onRemovePhotoClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showFullScreenPhoto by remember { mutableStateOf(false) }
+
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = "Foto do cadastro",
@@ -45,28 +54,15 @@ fun RegistrationPhotoSection(
             border = BorderStroke(1.5.dp, CacaPlacaOrange)
         ) {
             Column {
-                // Placeholder da foto (No futuro, usar AsyncImage do Coil com photo.localPath)
-                Box(
+                AsyncImage(
+                    model = File(photo.localPath),
+                    contentDescription = "Foto capturada da placa",
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(140.dp)
-                        .background(OutlineGray.copy(alpha = 0.4f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Outlined.Image,
-                            contentDescription = null,
-                            tint = CacaPlacaTextSecondary
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Foto capturada",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = CacaPlacaTextSecondary
-                        )
-                    }
-                }
+                        .height(160.dp)
+                        .clickable { showFullScreenPhoto = true }
+                )
 
                 Row(
                     modifier = Modifier
@@ -75,7 +71,10 @@ fun RegistrationPhotoSection(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     OutlinedButton(
-                        onClick = onViewPhotoClick,
+                        onClick = {
+                            showFullScreenPhoto = true
+                            onViewPhotoClick()
+                        },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.dp, OutlineGray)
@@ -99,6 +98,45 @@ fun RegistrationPhotoSection(
                             color = CacaPlacaTextPrimary
                         )
                     }
+                }
+            }
+        }
+    }
+
+    // Modal em tela cheia para visualizar a foto ao clicar em "Ver" ou na imagem
+    if (showFullScreenPhoto) {
+        Dialog(
+            onDismissRequest = { showFullScreenPhoto = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(CacaPlacaNavy.copy(alpha = 0.95f))
+                    .padding(16.dp)
+            ) {
+                AsyncImage(
+                    model = File(photo.localPath),
+                    contentDescription = "Visualização ampliada da placa",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .align(Alignment.Center)
+                )
+
+                IconButton(
+                    onClick = { showFullScreenPhoto = false },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .clip(CircleShape)
+                        .background(SurfaceWhite)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Fechar",
+                        tint = CacaPlacaTextPrimary
+                    )
                 }
             }
         }

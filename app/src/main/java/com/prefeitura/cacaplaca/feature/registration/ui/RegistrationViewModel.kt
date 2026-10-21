@@ -42,7 +42,7 @@ enum class ConfirmationSyncStatus {
 
 data class RegistrationUiState(
     val currentStep: RegistrationStep = RegistrationStep.CAMERA,
-    val photo: CapturedPhoto? = null, // Apenas 1 foto
+    val photo: CapturedPhoto? = null,
     val selectedPlate: PlateTypeOption? = PlateTypeOption("R-1", "Parada obrigatória"),
     val availablePlates: List<PlateTypeOption> = listOf(
         PlateTypeOption("R-1", "Parada obrigatória"),
@@ -58,10 +58,8 @@ data class RegistrationUiState(
     ),
     val registrationDate: String = "15/10/2026",
     val agentName: String = "Agente Pedro",
-
-    // Seção "Informações adicionais (Opcional • Afastamento e materiais)"[cite: 5, 6, 7, 8, 9, 10]
     val isAdditionalInfoExpanded: Boolean = false,
-    val afastamentoInput: String = "", // Ex: "1.5"
+    val afastamentoInput: String = "",
     val estadoConservacao: EstadoConservacao = EstadoConservacao.BOM,
     val tipoPelicula: TipoPelicula? = null,
     val tipoSubstrato: TipoSubstrato? = null,
@@ -69,7 +67,6 @@ data class RegistrationUiState(
     val estadoPelicula: EstadoConservacao? = null,
     val estadoSubstrato: EstadoConservacao? = null,
     val estadoSuporte: EstadoConservacao? = null,
-
     val saveBannerState: SaveBannerState = SaveBannerState.NONE,
     val confirmationStatus: ConfirmationSyncStatus = ConfirmationSyncStatus.SYNCED
 ) {
@@ -87,12 +84,16 @@ class RegistrationViewModel(
     private val _uiState = MutableStateFlow(RegistrationUiState())
     val uiState: StateFlow<RegistrationUiState> = _uiState.asStateFlow()
 
-    fun onCaptureSimulatedPhoto() {
-        val captured = CapturedPhoto(
-            id = UUID.randomUUID().toString(),
-            localPath = "mock_photo_single"
-        )
-        _uiState.update { it.copy(photo = captured) }
+    fun onPhotoCaptured(filePath: String) {
+        if (filePath.isBlank()) {
+            _uiState.update { it.copy(photo = null) }
+        } else {
+            val captured = CapturedPhoto(
+                id = UUID.randomUUID().toString(),
+                localPath = filePath
+            )
+            _uiState.update { it.copy(photo = captured) }
+        }
     }
 
     fun onRemovePhoto() {
@@ -105,9 +106,7 @@ class RegistrationViewModel(
     }
 
     fun onContinueFromCamera() {
-        if (_uiState.value.photo == null) {
-            onCaptureSimulatedPhoto()
-        }
+        if (_uiState.value.photo == null) return
         _uiState.update { it.copy(currentStep = RegistrationStep.FORM) }
         fetchGpsLocation()
     }
@@ -137,7 +136,6 @@ class RegistrationViewModel(
         _uiState.update { it.copy(selectedPlate = plate) }
     }
 
-    // Handlers da seção "Informações adicionais"
     fun onToggleAdditionalInfo() {
         _uiState.update { it.copy(isAdditionalInfoExpanded = !it.isAdditionalInfoExpanded) }
     }

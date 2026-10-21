@@ -30,8 +30,8 @@ fun RegistrationScreen(
         RegistrationStep.CAMERA -> {
             CameraStepContent(
                 modifier = modifier,
-                hasPhotoCaptured = uiState.photo != null,
-                onCaptureClick = viewModel::onCaptureSimulatedPhoto,
+                capturedPhotoPath = uiState.photo?.localPath,
+                onPhotoCaptured = viewModel::onPhotoCaptured,
                 onContinueClick = viewModel::onContinueFromCamera,
                 onBackClick = handleBack
             )
@@ -60,6 +60,7 @@ fun RegistrationScreen(
                 modifier = modifier,
                 status = uiState.confirmationStatus,
                 plateLabel = uiState.selectedPlate?.displayLabel ?: "",
+                photoPath = uiState.photo?.localPath,
                 agentName = uiState.agentName,
                 date = uiState.registrationDate,
                 onViewOnMapClick = onNavigateToMap,

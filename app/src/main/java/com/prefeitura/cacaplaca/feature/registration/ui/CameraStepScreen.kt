@@ -1,5 +1,18 @@
 package com.prefeitura.cacaplaca.feature.registration.ui
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.util.Log
+import android.view.ViewGroup
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,30 +21,70 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import coil.compose.AsyncImage
 import com.prefeitura.cacaplaca.feature.registration.ui.components.RegistrationTopBar
+import com.prefeitura.cacaplaca.ui.theme.*
+import java.io.File
 
 @Composable
 fun CameraStepContent(
-    hasPhotoCaptured: Boolean,
-    onCaptureClick: () -> Unit,
+    capturedPhotoPath: String?,
+    onPhotoCaptured: (String) -> Unit,
     onContinueClick: () -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                    PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasCameraPermission = granted
+    }
+
+    LaunchedEffect(Unit) {
+        if (!hasCameraPermission) {
+            permissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    val imageCapture = remember {
+        ImageCapture.Builder()
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .build()
+    }
+
+    var isCapturing by remember { mutableStateOf(false) }
+    val hasPhoto = capturedPhotoPath != null
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(CacaPlacaBackground)
     ) {
         RegistrationTopBar(
             title = "Fotografar placa",
@@ -46,60 +99,160 @@ fun CameraStepContent(
         ) {
             Text(
                 text = "Enquadre a placa inteira na foto",
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onBackground
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                color = CacaPlacaTextPrimary
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Use a câmera para registrar a placa e o entorno. Sem galeria.",
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 18.sp
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
+                color = CacaPlacaTextSecondary
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Visor da Câmara Simulada
+            // Container do Visor da Câmera / Foto Capturada
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
-                    .padding(vertical = 24.dp, horizontal = 16.dp)
+                    .background(CacaPlacaNavy)
             ) {
-                Text(
-                    text = if (hasPhotoCaptured) "Foto capturada ✓" else "Câmera simulada",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    modifier = Modifier.align(Alignment.TopCenter)
-                )
+                when {
+                    // 1. Se já tirou a foto, mostra a imagem congelada
+                    hasPhoto -> {
+                        AsyncImage(
+                            model = File(capturedPhotoPath!!),
+                            contentDescription = "Foto da placa",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
 
+                    // 2. Se tem permissão e ainda não tirou foto, mostra a câmera ao vivo
+                    hasCameraPermission -> {
+                        AndroidView(
+                            modifier = Modifier.fillMaxSize(),
+                            factory = { ctx ->
+                                val previewView = PreviewView(ctx).apply {
+                                    layoutParams = ViewGroup.LayoutParams(
+                                        ViewGroup.LayoutParams.MATCH_PARENT,
+                                        ViewGroup.LayoutParams.MATCH_PARENT
+                                    )
+                                    scaleType = PreviewView.ScaleType.FILL_CENTER
+                                }
+
+                                val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+                                cameraProviderFuture.addListener({
+                                    val cameraProvider = cameraProviderFuture.get()
+                                    val preview = Preview.Builder().build().also {
+                                        it.surfaceProvider = previewView.surfaceProvider
+                                    }
+
+                                    try {
+                                        cameraProvider.unbindAll()
+                                        cameraProvider.bindToLifecycle(
+                                            lifecycleOwner,
+                                            CameraSelector.DEFAULT_BACK_CAMERA,
+                                            preview,
+                                            imageCapture
+                                        )
+                                    } catch (e: Exception) {
+                                        Log.e("CameraStep", "Erro ao iniciar CameraX", e)
+                                    }
+                                }, ContextCompat.getMainExecutor(ctx))
+
+                                previewView
+                            }
+                        )
+                    }
+
+                    // 3. Caso o usuário tenha negado a permissão da câmera
+                    else -> {
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Permissão de câmera necessária para fotografar a placa.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = SurfaceWhite,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Button(
+                                onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+                                colors = ButtonDefaults.buttonColors(containerColor = CacaPlacaOrange)
+                            ) {
+                                Text("Permitir Câmera", color = SurfaceWhite)
+                            }
+                        }
+                    }
+                }
+
+                // Overlay superior de status
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 20.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(CacaPlacaNavy.copy(alpha = 0.65f))
+                        .padding(horizontal = 14.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = if (hasPhoto) "Foto capturada ✓" else "Câmera ativa",
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                        color = SurfaceWhite
+                    )
+                }
+
+                // Controles inferiores dentro do visor
                 Column(
-                    modifier = Modifier.align(Alignment.BottomCenter),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = if (hasPhotoCaptured) {
-                            "Toque para substituir a foto ou clique em Continuar"
+                        text = if (hasPhoto) {
+                            "Toque no botão para tirar outra ou clique em Continuar"
                         } else {
                             "Toque no botão para fotografar"
                         },
-                        color = Color.White.copy(alpha = 0.9f),
-                        fontSize = 12.sp
+                        style = MaterialTheme.typography.bodySmall,
+                        color = SurfaceWhite
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Botão Disparador (Anel branco + Miolo bege + Ícone âmbar)
+                    // Botão Disparador
                     Box(
                         modifier = Modifier
                             .size(84.dp)
                             .clip(CircleShape)
-                            .background(Color.White)
-                            .clickable { onCaptureClick() }
+                            .background(SurfaceWhite)
+                            .clickable(enabled = hasCameraPermission && !isCapturing) {
+                                if (hasPhoto) {
+                                    // Se já tem foto e clicou no botão, limpa para tirar outra
+                                    onPhotoCaptured("") // ou acione onRemovePhoto
+                                } else {
+                                    isCapturing = true
+                                    takePhoto(
+                                        context = context,
+                                        imageCapture = imageCapture,
+                                        onPhotoSaved = { file ->
+                                            isCapturing = false
+                                            onPhotoCaptured(file.absolutePath)
+                                        },
+                                        onError = {
+                                            isCapturing = false
+                                        }
+                                    )
+                                }
+                            }
                             .padding(8.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -107,15 +260,23 @@ fun CameraStepContent(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primaryContainer),
+                                .background(CacaPlacaOrangeLight),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.PhotoCamera,
-                                contentDescription = "Fotografar",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(28.dp)
-                            )
+                            if (isCapturing) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(26.dp),
+                                    color = CacaPlacaOrange,
+                                    strokeWidth = 2.5.dp
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = if (hasPhoto) Icons.Outlined.Refresh else Icons.Outlined.PhotoCamera,
+                                    contentDescription = "Fotografar",
+                                    tint = CacaPlacaOrange,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -123,39 +284,59 @@ fun CameraStepContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Botão Continuar
+            // Botão Continuar (só habilita após tirar a foto!)
             Button(
                 onClick = onContinueClick,
+                enabled = hasPhoto,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (hasPhotoCaptured) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-                    contentColor = if (hasPhotoCaptured) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                    containerColor = CacaPlacaOrange,
+                    contentColor = CacaPlacaTextPrimary,
+                    disabledContainerColor = SurfaceWhite,
+                    disabledContentColor = CacaPlacaTextSecondary
                 ),
                 border = BorderStroke(
                     width = 1.dp,
-                    color = if (hasPhotoCaptured) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                    color = if (hasPhoto) CacaPlacaOrange else OutlineGray
                 )
             ) {
                 Text(
                     text = "Continuar",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp
+                    style = MaterialTheme.typography.labelLarge
                 )
             }
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun CameraStepPreview() {
-    CameraStepContent(
-        hasPhotoCaptured = false,
-        onCaptureClick = {},
-        onContinueClick = {},
-        onBackClick = {}
+private fun takePhoto(
+    context: Context,
+    imageCapture: ImageCapture,
+    onPhotoSaved: (File) -> Unit,
+    onError: (ImageCaptureException) -> Unit
+) {
+    val photoFile = File(
+        context.cacheDir,
+        "placa_${System.currentTimeMillis()}.jpg"
+    )
+
+    val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+    imageCapture.takePicture(
+        outputOptions,
+        ContextCompat.getMainExecutor(context),
+        object : ImageCapture.OnImageSavedCallback {
+            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                onPhotoSaved(photoFile)
+            }
+
+            override fun onError(exception: ImageCaptureException) {
+                Log.e("CameraStep", "Falha ao salvar foto: ${exception.message}", exception)
+                onError(exception)
+            }
+        }
     )
 }
