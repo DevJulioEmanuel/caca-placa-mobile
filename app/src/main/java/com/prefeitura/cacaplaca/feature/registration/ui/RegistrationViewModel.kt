@@ -2,141 +2,119 @@ package com.prefeitura.cacaplaca.feature.registration.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.prefeitura.cacaplaca.core.session.SessionManager
+import com.prefeitura.cacaplaca.core.gps.LocationTracker
 import com.prefeitura.cacaplaca.feature.registration.data.*
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
-
-enum class RegistrationStep {
-    CAMERA,       // Etapa 1 de 2
-    FORM,         // Etapa 2 de 2
-    CONFIRMATION  // Confirmação
-}
-
-sealed interface GpsUiState {
-    data object Loading : GpsUiState
-    data class Success(
-        val latitude: Double,
-        val longitude: Double,
-        val accuracyMeters: Int = 8,
-        val isSimulated: Boolean = true
-    ) : GpsUiState
-    data object Error : GpsUiState
-}
-
-enum class SaveBannerState {
-    NONE,
-    OFFLINE_WARNING,
-    SAVING,
-    ERROR
-}
-
-enum class ConfirmationSyncStatus {
-    SYNCED,
-    SAVED_OFFLINE
-}
-
-data class RegistrationUiState(
-    val currentStep: RegistrationStep = RegistrationStep.CAMERA,
-    val photo: CapturedPhoto? = null,
-    val selectedPlate: PlateTypeOption? = PlateTypeOption("R-1", "Parada obrigatória"),
-    val availablePlates: List<PlateTypeOption> = listOf(
-        PlateTypeOption("R-1", "Parada obrigatória"),
-        PlateTypeOption("R-2", "Dê a preferência"),
-        PlateTypeOption("R-19", "Velocidade máxima permitida"),
-        PlateTypeOption("A-18", "Saliência ou lombada")
-    ),
-    val gpsState: GpsUiState = GpsUiState.Success(
-        latitude = -4.9714,
-        longitude = -39.0154,
-        accuracyMeters = 8,
-        isSimulated = true
-    ),
-    val registrationDate: String = "15/10/2026",
-    val agentName: String = "Agente Pedro",
-    val isAdditionalInfoExpanded: Boolean = false,
-    val afastamentoInput: String = "",
-    val estadoConservacao: EstadoConservacao = EstadoConservacao.BOM,
-    val tipoPelicula: TipoPelicula? = null,
-    val tipoSubstrato: TipoSubstrato? = null,
-    val tipoSuporte: TipoSuporte? = null,
-    val estadoPelicula: EstadoConservacao? = null,
-    val estadoSubstrato: EstadoConservacao? = null,
-    val estadoSuporte: EstadoConservacao? = null,
-    val saveBannerState: SaveBannerState = SaveBannerState.NONE,
-    val confirmationStatus: ConfirmationSyncStatus = ConfirmationSyncStatus.SYNCED,
-    val isSelectingPlate: Boolean = false,
-    val plateSearchQuery: String = "",
-    val tempSelectedPlate: PlateTypeOption? = null,
-) {
-    val canSubmitForm: Boolean
-        get() = photo != null &&
-                selectedPlate != null &&
-                gpsState is GpsUiState.Success &&
-                saveBannerState != SaveBannerState.SAVING
-}
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.io.File
 
 class RegistrationViewModel(
-    private val repository: RegistrationRepository
+    private val repository: RegistrationRepository,
+    private val sessionManager: SessionManager,
+    private val locationTracker: LocationTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RegistrationUiState())
     val uiState: StateFlow<RegistrationUiState> = _uiState.asStateFlow()
 
-    fun onPhotoCaptured(filePath: String) {
-        if (filePath.isBlank()) {
-            _uiState.update { it.copy(photo = null) }
-        } else {
-            val captured = CapturedPhoto(
-                id = UUID.randomUUID().toString(),
-                localPath = filePath
-            )
-            _uiState.update { it.copy(photo = captured) }
-        }
-    }
+    private val allPlates = availablePlatesList
 
-    fun onRemovePhoto() {
+    init {
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
         _uiState.update {
             it.copy(
-                photo = null,
-                currentStep = RegistrationStep.CAMERA
+                agentName = sessionManager.getUserName() ?: "Agente",
+                registrationDate = dateFormat.format(Date())
             )
         }
-    }
-
-    fun onContinueFromCamera() {
-        if (_uiState.value.photo == null) return
-        _uiState.update { it.copy(currentStep = RegistrationStep.FORM) }
-        fetchGpsLocation()
     }
 
     fun fetchGpsLocation(simulateError: Boolean = false) {
         viewModelScope.launch {
             _uiState.update { it.copy(gpsState = GpsUiState.Loading) }
-            delay(1200)
-            if (simulateError) {
-                _uiState.update { it.copy(gpsState = GpsUiState.Error) }
-            } else {
-                _uiState.update {
-                    it.copy(
-                        gpsState = GpsUiState.Success(
-                            latitude = -4.9714,
-                            longitude = -39.0154,
-                            accuracyMeters = 8,
-                            isSimulated = true
-                        )
-                    )
+            val location = locationTracker.getCurrentLocation()
+            if (location != null && !simulateError) {
+                _uiState.update { 
+                    it.copy(gpsState = GpsUiState.Success(location.latitude, location.longitude)) 
                 }
+            } else {
+                _uiState.update { it.copy(gpsState = GpsUiState.Error) }
             }
         }
     }
 
-    fun onPlateSelected(plate: PlateTypeOption) {
-        _uiState.update { it.copy(selectedPlate = plate) }
+    fun onHandleBack(): Boolean {
+        val currentState = _uiState.value
+        return when (currentState.currentStep) {
+            RegistrationStep.FORM -> {
+                _uiState.update { it.copy(currentStep = RegistrationStep.CAMERA) }
+                true
+            }
+            RegistrationStep.CONFIRMATION -> {
+                resetRegistrationState()
+                true
+            }
+            RegistrationStep.CAMERA -> false
+        }
+    }
+
+    fun onClosePlateSelection() {
+        _uiState.update { it.copy(isSelectingPlate = false) }
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        val filtered = if (query.isBlank()) {
+            allPlates
+        } else {
+            allPlates.filter { it.displayLabel.contains(query, ignoreCase = true) || it.code.contains(query, ignoreCase = true) }
+        }
+        _uiState.update { it.copy(plateSearchQuery = query, availablePlates = filtered) }
+    }
+
+    fun onTempPlateSelected(plate: PlateTypeOption) {
+        _uiState.update { it.copy(tempSelectedPlate = plate) }
+    }
+
+    fun onConfirmPlateSelection() {
+        _uiState.update { 
+            it.copy(
+                selectedPlate = it.tempSelectedPlate,
+                isSelectingPlate = false
+            )
+        }
+    }
+
+    fun onPhotoCaptured(path: String) {
+        _uiState.update { it.copy(photo = CapturedPhoto(localPath = path, name = File(path).name)) }
+    }
+
+    fun onContinueFromCamera() {
+        _uiState.update { it.copy(currentStep = RegistrationStep.FORM) }
+        if (_uiState.value.gpsState !is GpsUiState.Success) {
+            fetchGpsLocation()
+        }
+    }
+
+    fun onRemovePhoto() {
+        _uiState.update { it.copy(photo = null, currentStep = RegistrationStep.CAMERA) }
+    }
+
+    fun onOpenPlateSelection() {
+        _uiState.update { 
+            it.copy(
+                isSelectingPlate = true, 
+                tempSelectedPlate = it.selectedPlate,
+                plateSearchQuery = "",
+                availablePlates = allPlates
+            ) 
+        }
     }
 
     fun onToggleAdditionalInfo() {
@@ -147,61 +125,37 @@ class RegistrationViewModel(
         _uiState.update { it.copy(afastamentoInput = value) }
     }
 
-    fun onEstadoConservacaoSelected(estado: EstadoConservacao) {
-        _uiState.update { it.copy(estadoConservacao = estado) }
+    fun onEstadoConservacaoSelected(value: EstadoConservacao) {
+        _uiState.update { it.copy(estadoConservacao = value) }
     }
 
-    fun onTipoPeliculaSelected(tipo: TipoPelicula?) {
-        _uiState.update { it.copy(tipoPelicula = tipo) }
+    fun onTipoPeliculaSelected(value: TipoPelicula?) {
+        _uiState.update { it.copy(tipoPelicula = value) }
     }
 
-    fun onTipoSubstratoSelected(tipo: TipoSubstrato?) {
-        _uiState.update { it.copy(tipoSubstrato = tipo) }
+    fun onTipoSubstratoSelected(value: TipoSubstrato?) {
+        _uiState.update { it.copy(tipoSubstrato = value) }
     }
 
-    fun onTipoSuporteSelected(tipo: TipoSuporte?) {
-        _uiState.update { it.copy(tipoSuporte = tipo) }
+    fun onTipoSuporteSelected(value: TipoSuporte?) {
+        _uiState.update { it.copy(tipoSuporte = value) }
     }
 
-    fun onEstadoPeliculaSelected(estado: EstadoConservacao?) {
-        _uiState.update { it.copy(estadoPelicula = estado) }
+    fun onObservacaoChanged(value: String) {
+        _uiState.update { it.copy(observacaoInput = value) }
     }
 
-    fun onEstadoSubstratoSelected(estado: EstadoConservacao?) {
-        _uiState.update { it.copy(estadoSubstrato = estado) }
+    fun onRegisterAnotherPlate() {
+        resetRegistrationState()
     }
 
-    fun onEstadoSuporteSelected(estado: EstadoConservacao?) {
-        _uiState.update { it.copy(estadoSuporte = estado) }
-    }
-
-    fun onOpenPlateSelection() {
+    private fun resetRegistrationState() {
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
         _uiState.update {
-            it.copy(
-                isSelectingPlate = true,
-                tempSelectedPlate = it.selectedPlate,
-                plateSearchQuery = ""
-            )
-        }
-    }
-
-    fun onClosePlateSelection() {
-        _uiState.update { it.copy(isSelectingPlate = false) }
-    }
-
-    fun onSearchQueryChanged(query: String) {
-        _uiState.update { it.copy(plateSearchQuery = query) }
-    }
-
-    fun onTempPlateSelected(plate: PlateTypeOption) {
-        _uiState.update { it.copy(tempSelectedPlate = plate) }
-    }
-
-    fun onConfirmPlateSelection() {
-        _uiState.update {
-            it.copy(
-                selectedPlate = it.tempSelectedPlate,
-                isSelectingPlate = false
+            RegistrationUiState(
+                agentName = sessionManager.getUserName() ?: "Agente",
+                registrationDate = dateFormat.format(Date()),
+                availablePlates = allPlates
             )
         }
     }
@@ -226,15 +180,13 @@ class RegistrationViewModel(
                 tipoSuporte = currentState.tipoSuporte,
                 estadoPelicula = currentState.estadoPelicula,
                 estadoSubstrato = currentState.estadoSubstrato,
-                estadoSuporte = currentState.estadoSuporte
+                estadoSuporte = currentState.estadoSuporte,
+                observacao = currentState.observacaoInput.ifBlank { null }
             )
 
-            val result = repository.submitRegistration(
-                data = formData,
-                photo = photo
-            )
+            val result = repository.submitRegistration(formData, photo)
 
-            result.onSuccess { isSyncedOnline ->
+            result.onSuccess {
                 _uiState.update {
                     it.copy(
                         saveBannerState = SaveBannerState.NONE,
@@ -242,24 +194,9 @@ class RegistrationViewModel(
                         confirmationStatus = ConfirmationSyncStatus.SYNCED
                     )
                 }
-            }.onFailure { error ->
+            }.onFailure {
                 _uiState.update { it.copy(saveBannerState = SaveBannerState.ERROR) }
             }
-        }
-    }
-
-    fun onRegisterAnotherPlate() {
-        _uiState.value = RegistrationUiState()
-    }
-
-    fun onHandleBack(): Boolean {
-        return when (_uiState.value.currentStep) {
-            RegistrationStep.CAMERA -> false
-            RegistrationStep.FORM -> {
-                _uiState.update { it.copy(currentStep = RegistrationStep.CAMERA) }
-                true
-            }
-            RegistrationStep.CONFIRMATION -> false
         }
     }
 }

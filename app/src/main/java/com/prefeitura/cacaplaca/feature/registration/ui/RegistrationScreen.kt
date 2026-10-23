@@ -70,6 +70,7 @@ fun RegistrationScreen(
                     onTipoPeliculaSelected = viewModel::onTipoPeliculaSelected,
                     onTipoSubstratoSelected = viewModel::onTipoSubstratoSelected,
                     onTipoSuporteSelected = viewModel::onTipoSuporteSelected,
+                    onObservacaoChanged = viewModel::onObservacaoChanged,
                     onSubmitClick = { viewModel.onSubmitRegistration() }
                 )
             }

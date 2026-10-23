@@ -5,6 +5,7 @@ import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
+import retrofit2.http.GET
 
 interface AuthApi {
     @FormUrlEncoded
@@ -16,4 +17,7 @@ interface AuthApi {
 
     @POST("auth/forgot-password")
     suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<Unit>
+
+    @GET("users/me")
+    suspend fun getMe(): Response<UserResponse>
 }

@@ -28,12 +28,14 @@ fun RegistrationAdditionalInfo(
     tipoPelicula: TipoPelicula?,
     tipoSubstrato: TipoSubstrato?,
     tipoSuporte: TipoSuporte?,
+    observacaoInput: String, // <-- Adicionado o parâmetro do estado
     onToggleExpanded: () -> Unit,
     onAfastamentoChanged: (String) -> Unit,
     onEstadoConservacaoSelected: (EstadoConservacao) -> Unit,
     onTipoPeliculaSelected: (TipoPelicula?) -> Unit,
     onTipoSubstratoSelected: (TipoSubstrato?) -> Unit,
     onTipoSuporteSelected: (TipoSuporte?) -> Unit,
+    onObservacaoChanged: (String) -> Unit, // <-- Adicionado o evento
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -110,7 +112,7 @@ fun RegistrationAdditionalInfo(
                             FilterChip(
                                 selected = estadoConservacao == estado,
                                 onClick = { onEstadoConservacaoSelected(estado) },
-                                label = { Text(estado.label, style = MaterialTheme.typography.bodySmall) }
+                                label = { Text(estado.name, style = MaterialTheme.typography.bodySmall) }
                             )
                         }
                     }
@@ -131,7 +133,7 @@ fun RegistrationAdditionalInfo(
                                 onClick = {
                                     onTipoPeliculaSelected(if (tipoPelicula == item) null else item)
                                 },
-                                label = { Text(item.label, style = MaterialTheme.typography.bodySmall) }
+                                label = { Text(item.name, style = MaterialTheme.typography.bodySmall) }
                             )
                         }
                     }
@@ -152,7 +154,7 @@ fun RegistrationAdditionalInfo(
                                 onClick = {
                                     onTipoSubstratoSelected(if (tipoSubstrato == item) null else item)
                                 },
-                                label = { Text(item.label, style = MaterialTheme.typography.bodySmall) }
+                                label = { Text(item.name, style = MaterialTheme.typography.bodySmall) }
                             )
                         }
                     }
@@ -173,10 +175,28 @@ fun RegistrationAdditionalInfo(
                                 onClick = {
                                     onTipoSuporteSelected(if (tipoSuporte == item) null else item)
                                 },
-                                label = { Text(item.label, style = MaterialTheme.typography.bodySmall) }
+                                label = { Text(item.name, style = MaterialTheme.typography.bodySmall) }
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Observação (Novo Campo)
+                    Text(
+                        text = "Observação",
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                        color = CacaPlacaTextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    OutlinedTextField(
+                        value = observacaoInput,
+                        onValueChange = onObservacaoChanged,
+                        placeholder = { Text("Ex: Placa pichada, poste inclinado...", style = MaterialTheme.typography.bodyMedium) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        minLines = 2
+                    )
                 }
             }
         }

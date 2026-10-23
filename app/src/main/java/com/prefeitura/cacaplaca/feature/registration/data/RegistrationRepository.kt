@@ -32,7 +32,6 @@ class RegistrationRepository(
             val longitudePart = createPartFromString(data.longitude.toString())
             val estadoConservacaoPart = createPartFromString(data.estadoConservacao.name)
 
-            // Campos mockado enquanto nao colocam como opcional.
             val logradouroPart = createPartFromString("Rua Mockada")
             val bairroPart = createPartFromString("Bairro Mockado")
             val cepPart = createPartFromString("63900-000")
@@ -44,6 +43,7 @@ class RegistrationRepository(
             val estadoPeliculaPart = data.estadoPelicula?.let { createPartFromString(it.name) }
             val estadoSubstratoPart = data.estadoSubstrato?.let { createPartFromString(it.name) }
             val estadoSuportePart = data.estadoSuporte?.let { createPartFromString(it.name) }
+            val observacaoPart = data.observacao?.let { createPartFromString(it) }
 
             val response = api.createPlaca(
                 codigoContran = codigoContranPart,
@@ -60,7 +60,8 @@ class RegistrationRepository(
                 tipoSuporte = tipoSuportePart,
                 estadoPelicula = estadoPeliculaPart,
                 estadoSubstrato = estadoSubstratoPart,
-                estadoSuporte = estadoSuportePart
+                estadoSuporte = estadoSuportePart,
+                observacao = observacaoPart
             )
 
             if (response.isSuccessful) {
@@ -69,10 +70,6 @@ class RegistrationRepository(
                 val errorMsg = extractErrorDetail(response)
                 Result.failure(Exception(errorMsg))
             }
-        } catch (e: ConnectException) {
-            Result.failure(Exception("Sem conexão"))
-        } catch (e: SocketTimeoutException) {
-            Result.failure(Exception("Tempo limite esgotado"))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -83,11 +80,7 @@ class RegistrationRepository(
         return try {
             if (rawError != null) {
                 val jsonObject = JSONObject(rawError)
-                if (jsonObject.has("detail")) {
-                    jsonObject.getString("detail")
-                } else {
-                    "Erro: ${response.code()}"
-                }
+                if (jsonObject.has("detail")) jsonObject.getString("detail") else "Erro: ${response.code()}"
             } else {
                 "Erro: ${response.code()}"
             }

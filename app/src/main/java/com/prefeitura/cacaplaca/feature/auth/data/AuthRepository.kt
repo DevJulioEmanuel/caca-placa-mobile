@@ -55,6 +55,14 @@ class AuthRepository(
     suspend fun login(username: String, password: String): Result<LoginResponse> {
         return safeApiCall { api.login(username, password) }.onSuccess { body ->
             sessionManager.saveToken(body.accessToken)
+            // Após logar com sucesso, busca os dados do usuário e salva o nome
+            fetchCurrentUser()
+        }
+    }
+
+    suspend fun fetchCurrentUser(): Result<UserResponse> {
+        return safeApiCall { api.getMe() }.onSuccess { user ->
+            sessionManager.saveUserName(user.nome)
         }
     }
 

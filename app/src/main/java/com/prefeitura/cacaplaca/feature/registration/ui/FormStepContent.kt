@@ -37,6 +37,7 @@ fun FormStepContent(
     onTipoPeliculaSelected: (TipoPelicula?) -> Unit,
     onTipoSubstratoSelected: (TipoSubstrato?) -> Unit,
     onTipoSuporteSelected: (TipoSuporte?) -> Unit,
+    onObservacaoChanged: (String) -> Unit,
     onSubmitClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -153,12 +154,14 @@ fun FormStepContent(
                         tipoPelicula = uiState.tipoPelicula,
                         tipoSubstrato = uiState.tipoSubstrato,
                         tipoSuporte = uiState.tipoSuporte,
+                        observacaoInput = uiState.observacaoInput,
                         onToggleExpanded = onToggleAdditionalInfo,
                         onAfastamentoChanged = onAfastamentoChanged,
                         onEstadoConservacaoSelected = onEstadoConservacaoSelected,
                         onTipoPeliculaSelected = onTipoPeliculaSelected,
                         onTipoSubstratoSelected = onTipoSubstratoSelected,
-                        onTipoSuporteSelected = onTipoSuporteSelected
+                        onTipoSuporteSelected = onTipoSuporteSelected,
+                        onObservacaoChanged = onObservacaoChanged
                     )
                 }
             }
