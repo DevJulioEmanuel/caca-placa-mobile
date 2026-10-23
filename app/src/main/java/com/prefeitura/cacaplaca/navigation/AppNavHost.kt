@@ -100,6 +100,9 @@ fun AppNavHost(
                 modifier = Modifier.safeDrawingPadding(),
                 onBackClicked = {
                     navController.safePopBackStack()
+                },
+                onProfileClicked = {
+                    navController.navigate(Screen.Profile)
                 }
             )
         }
