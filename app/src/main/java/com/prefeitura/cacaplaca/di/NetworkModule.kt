@@ -9,6 +9,7 @@ import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.Interceptor
+import java.util.concurrent.TimeUnit
 
 val BASE_URL = "http://192.168.0.12:8000/"
 val networkModule = module {
@@ -31,10 +32,13 @@ val networkModule = module {
         }
 
         val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = HttpLoggingInterceptor.Level.HEADERS
         }
 
         OkHttpClient.Builder()
+            .connectTimeout(3, TimeUnit.SECONDS)
+            .readTimeout(3, TimeUnit.SECONDS)
+            .writeTimeout(3, TimeUnit.SECONDS)
             .addInterceptor(authInterceptor)
             .addInterceptor(logging)
             .build()

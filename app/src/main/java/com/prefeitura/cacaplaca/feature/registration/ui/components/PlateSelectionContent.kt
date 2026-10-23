@@ -69,7 +69,7 @@ fun PlateSelectionContent(
                     OutlinedTextField(
                         value = query,
                         onValueChange = onQueryChanged,
-                        placeholder = { Text("Ex: R-1 ou Lombada", style = MaterialTheme.typography.bodyMedium, color = CacaPlacaTextSecondary) },
+                        placeholder = { Text("Ex: R-1", style = MaterialTheme.typography.bodyMedium, color = CacaPlacaTextSecondary) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true,
