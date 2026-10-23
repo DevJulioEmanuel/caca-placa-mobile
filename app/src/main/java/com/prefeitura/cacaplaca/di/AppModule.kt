@@ -3,6 +3,7 @@ package com.prefeitura.cacaplaca.di
 import com.prefeitura.cacaplaca.core.gps.LocationRepository
 import com.prefeitura.cacaplaca.core.gps.LocationTracker
 import com.prefeitura.cacaplaca.core.gps.DefaultLocationTracker
+import com.prefeitura.cacaplaca.core.network.NetworkTracker
 import com.prefeitura.cacaplaca.feature.home.ui.HomeViewModel
 import com.google.android.gms.location.LocationServices
 import com.prefeitura.cacaplaca.core.session.SessionManager
@@ -18,6 +19,7 @@ import org.koin.dsl.module
 val appModule = module {
     single { LocationServices.getFusedLocationProviderClient(get<android.app.Application>()) }
     single<LocationTracker> { DefaultLocationTracker(get(), get()) }
+    singleOf(::NetworkTracker)
     singleOf(::LocationRepository)
     singleOf(::SessionManager)
     singleOf(::AuthRepository)
