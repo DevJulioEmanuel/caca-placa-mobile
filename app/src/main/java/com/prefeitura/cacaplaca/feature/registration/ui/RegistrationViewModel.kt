@@ -206,10 +206,7 @@ class RegistrationViewModel(
         }
     }
 
-    fun onSubmitRegistration(
-        simulateOffline: Boolean = false,
-        simulateError: Boolean = false
-    ) {
+    fun onSubmitRegistration() {
         val currentState = _uiState.value
         val gps = currentState.gpsState as? GpsUiState.Success ?: return
         val plate = currentState.selectedPlate ?: return
@@ -232,11 +229,9 @@ class RegistrationViewModel(
                 estadoSuporte = currentState.estadoSuporte
             )
 
-            val result = repository.submitRegistrationMock(
+            val result = repository.submitRegistration(
                 data = formData,
-                photo = photo,
-                simulateOffline = simulateOffline,
-                simulateSaveError = simulateError
+                photo = photo
             )
 
             result.onSuccess { isSyncedOnline ->
@@ -244,14 +239,10 @@ class RegistrationViewModel(
                     it.copy(
                         saveBannerState = SaveBannerState.NONE,
                         currentStep = RegistrationStep.CONFIRMATION,
-                        confirmationStatus = if (isSyncedOnline) {
-                            ConfirmationSyncStatus.SYNCED
-                        } else {
-                            ConfirmationSyncStatus.SAVED_OFFLINE
-                        }
+                        confirmationStatus = ConfirmationSyncStatus.SYNCED
                     )
                 }
-            }.onFailure {
+            }.onFailure { error ->
                 _uiState.update { it.copy(saveBannerState = SaveBannerState.ERROR) }
             }
         }
