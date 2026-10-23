@@ -1,4 +1,4 @@
-package com.prefeitura.cacaplaca.feature.registration.ui
+package com.prefeitura.cacaplaca.feature.registration.ui.screens
 
 import android.Manifest
 import android.content.Context
@@ -111,7 +111,6 @@ fun CameraStepContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Container do Visor da Câmera / Foto Capturada
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -120,7 +119,6 @@ fun CameraStepContent(
                     .background(CacaPlacaNavy)
             ) {
                 when {
-                    // 1. Se já tirou a foto, mostra a imagem congelada
                     hasPhoto -> {
                         AsyncImage(
                             model = File(capturedPhotoPath!!),
@@ -130,7 +128,6 @@ fun CameraStepContent(
                         )
                     }
 
-                    // 2. Se tem permissão e ainda não tirou foto, mostra a câmera ao vivo
                     hasCameraPermission -> {
                         AndroidView(
                             modifier = Modifier.fillMaxSize(),
@@ -168,7 +165,6 @@ fun CameraStepContent(
                         )
                     }
 
-                    // 3. Caso o usuário tenha negado a permissão da câmera
                     else -> {
                         Column(
                             modifier = Modifier
@@ -193,7 +189,6 @@ fun CameraStepContent(
                     }
                 }
 
-                // Overlay superior de status
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
@@ -209,7 +204,6 @@ fun CameraStepContent(
                     )
                 }
 
-                // Controles inferiores dentro do visor
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -228,7 +222,6 @@ fun CameraStepContent(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Botão Disparador
                     Box(
                         modifier = Modifier
                             .size(84.dp)
@@ -236,8 +229,7 @@ fun CameraStepContent(
                             .background(SurfaceWhite)
                             .clickable(enabled = hasCameraPermission && !isCapturing) {
                                 if (hasPhoto) {
-                                    // Se já tem foto e clicou no botão, limpa para tirar outra
-                                    onPhotoCaptured("") // ou acione onRemovePhoto
+                                    onPhotoCaptured("")
                                 } else {
                                     isCapturing = true
                                     takePhoto(
@@ -284,7 +276,6 @@ fun CameraStepContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Botão Continuar (só habilita após tirar a foto!)
             Button(
                 onClick = onContinueClick,
                 enabled = hasPhoto,

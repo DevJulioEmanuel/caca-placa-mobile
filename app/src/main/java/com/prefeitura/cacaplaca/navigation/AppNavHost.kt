@@ -16,7 +16,7 @@ import com.prefeitura.cacaplaca.feature.map.Map
 
 import androidx.lifecycle.Lifecycle
 import com.prefeitura.cacaplaca.feature.auth.ui.EmailSentScreen
-import com.prefeitura.cacaplaca.feature.registration.ui.RegistrationScreen
+import com.prefeitura.cacaplaca.feature.registration.ui.screens.RegistrationScreen
 
 fun NavHostController.safePopBackStack() {
     val currentEntry = this.currentBackStackEntry

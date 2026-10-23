@@ -19,16 +19,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
-import com.prefeitura.cacaplaca.feature.registration.data.CapturedPhoto
+import com.prefeitura.cacaplaca.feature.registration.data.model.CapturedPhoto
 import com.prefeitura.cacaplaca.ui.theme.*
 import java.io.File
 
 @Composable
 fun RegistrationPhotoSection(
+    modifier: Modifier = Modifier,
     photo: CapturedPhoto,
     onViewPhotoClick: () -> Unit = {},
     onRemovePhotoClick: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
     var showFullScreenPhoto by remember { mutableStateOf(false) }
 
@@ -103,7 +103,6 @@ fun RegistrationPhotoSection(
         }
     }
 
-    // Modal em tela cheia para visualizar a foto ao clicar em "Ver" ou na imagem
     if (showFullScreenPhoto) {
         Dialog(
             onDismissRequest = { showFullScreenPhoto = false },

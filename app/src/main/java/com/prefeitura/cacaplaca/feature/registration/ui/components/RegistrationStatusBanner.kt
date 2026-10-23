@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.prefeitura.cacaplaca.feature.registration.ui.SaveBannerState
+import com.prefeitura.cacaplaca.feature.registration.ui.state.SaveBannerState
 import com.prefeitura.cacaplaca.ui.theme.*
 
 @Composable

@@ -9,8 +9,8 @@ import com.prefeitura.cacaplaca.core.session.SessionManager
 import com.prefeitura.cacaplaca.feature.auth.AuthViewModel
 import com.prefeitura.cacaplaca.feature.auth.data.AuthRepository
 import com.prefeitura.cacaplaca.feature.map.MapViewModel
-import com.prefeitura.cacaplaca.feature.registration.data.RegistrationRepository
-import com.prefeitura.cacaplaca.feature.registration.ui.RegistrationViewModel
+import com.prefeitura.cacaplaca.feature.registration.data.repository.RegistrationRepository
+import com.prefeitura.cacaplaca.feature.registration.ui.viewmodel.RegistrationViewModel
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module

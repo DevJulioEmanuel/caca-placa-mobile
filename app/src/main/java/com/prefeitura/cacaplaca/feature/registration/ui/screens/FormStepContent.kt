@@ -1,4 +1,4 @@
-package com.prefeitura.cacaplaca.feature.registration.ui
+package com.prefeitura.cacaplaca.feature.registration.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -17,11 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.prefeitura.cacaplaca.feature.registration.data.EstadoConservacao
-import com.prefeitura.cacaplaca.feature.registration.data.TipoPelicula
-import com.prefeitura.cacaplaca.feature.registration.data.TipoSubstrato
-import com.prefeitura.cacaplaca.feature.registration.data.TipoSuporte
+import com.prefeitura.cacaplaca.feature.registration.data.model.EstadoConservacao
+import com.prefeitura.cacaplaca.feature.registration.data.model.TipoPelicula
+import com.prefeitura.cacaplaca.feature.registration.data.model.TipoSubstrato
+import com.prefeitura.cacaplaca.feature.registration.data.model.TipoSuporte
 import com.prefeitura.cacaplaca.feature.registration.ui.components.*
+import com.prefeitura.cacaplaca.feature.registration.ui.state.*
 import com.prefeitura.cacaplaca.ui.theme.*
 
 @Composable
@@ -59,17 +60,14 @@ fun FormStepContent(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 18.dp)
         ) {
-            // Seção da Foto Única
             if (uiState.photo != null) {
                 RegistrationPhotoSection(
                     photo = uiState.photo,
-                    onViewPhotoClick = { /* O view model já gerencia isso internamente no componente */ },
                     onRemovePhotoClick = onRemovePhotoClick
                 )
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
-            // Card Principal: Dados da placa
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -98,7 +96,6 @@ fun FormStepContent(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Apenas o botão que abre a tela de seleção (Sem DropdownMenu)
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -136,7 +133,6 @@ fun FormStepContent(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Sub-card de Localização GPS
                     RegistrationGpsCard(
                         gpsState = uiState.gpsState,
                         registrationDate = uiState.registrationDate,
@@ -146,7 +142,6 @@ fun FormStepContent(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Acordeão de Informações Adicionais
                     RegistrationAdditionalInfo(
                         expanded = uiState.isAdditionalInfoExpanded,
                         afastamentoInput = uiState.afastamentoInput,
@@ -166,7 +161,6 @@ fun FormStepContent(
                 }
             }
 
-            // Banner de Status (Offline / Salvando / Erro)
             if (uiState.saveBannerState != SaveBannerState.NONE) {
                 Spacer(modifier = Modifier.height(16.dp))
                 RegistrationStatusBanner(bannerState = uiState.saveBannerState)
@@ -174,7 +168,6 @@ fun FormStepContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Botão Final de Ação ("Cadastrar placa" ou "Tentar novamente")
             val isErrorState = uiState.saveBannerState == SaveBannerState.ERROR
             if (isErrorState) {
                 OutlinedButton(

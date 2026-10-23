@@ -1,4 +1,4 @@
-package com.prefeitura.cacaplaca.feature.registration.data
+package com.prefeitura.cacaplaca.feature.registration.data.model
 
 enum class CodigoContran(val code: String) {
     R_1("R-1"), R_2("R-2"), R_3("R-3"), R_4A("R-4a"), R_4B("R-4b"),

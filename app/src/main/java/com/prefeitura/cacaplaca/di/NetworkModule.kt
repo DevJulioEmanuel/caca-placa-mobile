@@ -2,7 +2,7 @@ package com.prefeitura.cacaplaca.di
 
 import com.prefeitura.cacaplaca.core.session.SessionManager
 import com.prefeitura.cacaplaca.feature.auth.data.AuthApi
-import com.prefeitura.cacaplaca.feature.registration.data.RegistrationApi
+import com.prefeitura.cacaplaca.feature.registration.data.api.RegistrationApi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.dsl.module

@@ -1,5 +1,8 @@
-package com.prefeitura.cacaplaca.feature.registration.data
+package com.prefeitura.cacaplaca.feature.registration.data.repository
 
+import com.prefeitura.cacaplaca.feature.registration.data.api.RegistrationApi
+import com.prefeitura.cacaplaca.feature.registration.data.model.CapturedPhoto
+import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaCreateData
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -8,8 +11,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import retrofit2.Response
 import java.io.File
-import java.net.ConnectException
-import java.net.SocketTimeoutException
 
 class RegistrationRepository(
     private val api: RegistrationApi

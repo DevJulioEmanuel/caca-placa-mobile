@@ -1,6 +1,6 @@
-package com.prefeitura.cacaplaca.feature.registration.ui
+package com.prefeitura.cacaplaca.feature.registration.ui.state
 
-import com.prefeitura.cacaplaca.feature.registration.data.*
+import com.prefeitura.cacaplaca.feature.registration.data.model.*
 
 data class RegistrationUiState(
     val currentStep: RegistrationStep = RegistrationStep.CAMERA,

@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.prefeitura.cacaplaca.feature.registration.data.*
+import com.prefeitura.cacaplaca.feature.registration.data.model.*
 import com.prefeitura.cacaplaca.ui.theme.*
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -28,14 +28,14 @@ fun RegistrationAdditionalInfo(
     tipoPelicula: TipoPelicula?,
     tipoSubstrato: TipoSubstrato?,
     tipoSuporte: TipoSuporte?,
-    observacaoInput: String, // <-- Adicionado o parâmetro do estado
+    observacaoInput: String,
     onToggleExpanded: () -> Unit,
     onAfastamentoChanged: (String) -> Unit,
     onEstadoConservacaoSelected: (EstadoConservacao) -> Unit,
     onTipoPeliculaSelected: (TipoPelicula?) -> Unit,
     onTipoSubstratoSelected: (TipoSubstrato?) -> Unit,
     onTipoSuporteSelected: (TipoSuporte?) -> Unit,
-    onObservacaoChanged: (String) -> Unit, // <-- Adicionado o evento
+    onObservacaoChanged: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -81,7 +81,6 @@ fun RegistrationAdditionalInfo(
                     HorizontalDivider(color = OutlineGray.copy(alpha = 0.5f))
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Afastamento (float em metros)
                     Text(
                         text = "Afastamento da via (metros)",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
@@ -100,7 +99,6 @@ fun RegistrationAdditionalInfo(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Estado Geral de Conservação
                     Text(
                         text = "Estado de conservação geral",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
@@ -119,7 +117,6 @@ fun RegistrationAdditionalInfo(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // Tipo de Película
                     Text(
                         text = "Tipo de película",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
@@ -140,7 +137,6 @@ fun RegistrationAdditionalInfo(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // Tipo de Substrato
                     Text(
                         text = "Tipo de substrato",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
@@ -161,7 +157,6 @@ fun RegistrationAdditionalInfo(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // Tipo de Suporte
                     Text(
                         text = "Tipo de suporte",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
@@ -182,7 +177,6 @@ fun RegistrationAdditionalInfo(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Observação (Novo Campo)
                     Text(
                         text = "Observação",
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),

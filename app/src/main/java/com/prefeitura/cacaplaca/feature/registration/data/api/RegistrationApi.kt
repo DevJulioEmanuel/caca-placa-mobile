@@ -1,5 +1,6 @@
-package com.prefeitura.cacaplaca.feature.registration.data
+package com.prefeitura.cacaplaca.feature.registration.data.api
 
+import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response

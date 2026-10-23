@@ -1,4 +1,4 @@
-package com.prefeitura.cacaplaca.feature.registration.ui
+package com.prefeitura.cacaplaca.feature.registration.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -16,8 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.prefeitura.cacaplaca.feature.registration.data.PlateTypeOption
-import com.prefeitura.cacaplaca.feature.registration.ui.components.RegistrationTopBar
+import com.prefeitura.cacaplaca.feature.registration.data.model.PlateTypeOption
 import com.prefeitura.cacaplaca.ui.theme.*
 
 @Composable
@@ -31,7 +30,6 @@ fun PlateSelectionContent(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Filtra as placas localmente com base na pesquisa
     val filteredPlates = availablePlates.filter {
         it.code.contains(query, ignoreCase = true) ||
                 it.description.contains(query, ignoreCase = true)
@@ -155,7 +153,6 @@ fun PlateSelectionContent(
             }
         }
 
-        // Fundo branco na zona do botão final
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = CacaPlacaBackground

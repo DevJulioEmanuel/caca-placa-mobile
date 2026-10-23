@@ -1,4 +1,4 @@
-package com.prefeitura.cacaplaca.feature.registration.ui
+package com.prefeitura.cacaplaca.feature.registration.ui.state
 
 sealed class GpsUiState {
     object Loading : GpsUiState()

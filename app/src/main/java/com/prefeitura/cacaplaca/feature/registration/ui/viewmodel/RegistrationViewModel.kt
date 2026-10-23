@@ -1,10 +1,12 @@
-package com.prefeitura.cacaplaca.feature.registration.ui
+package com.prefeitura.cacaplaca.feature.registration.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prefeitura.cacaplaca.core.session.SessionManager
 import com.prefeitura.cacaplaca.core.gps.LocationTracker
-import com.prefeitura.cacaplaca.feature.registration.data.*
+import com.prefeitura.cacaplaca.feature.registration.data.model.*
+import com.prefeitura.cacaplaca.feature.registration.data.repository.*
+import com.prefeitura.cacaplaca.feature.registration.ui.state.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -92,7 +94,11 @@ class RegistrationViewModel(
     }
 
     fun onPhotoCaptured(path: String) {
-        _uiState.update { it.copy(photo = CapturedPhoto(localPath = path, name = File(path).name)) }
+        if (path.isBlank()) {
+            _uiState.update { it.copy(photo = null) }
+        } else {
+            _uiState.update { it.copy(photo = CapturedPhoto(localPath = path, name = File(path).name)) }
+        }
     }
 
     fun onContinueFromCamera() {

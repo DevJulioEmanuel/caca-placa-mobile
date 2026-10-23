@@ -1,4 +1,4 @@
-package com.prefeitura.cacaplaca.feature.registration.ui
+package com.prefeitura.cacaplaca.feature.registration.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.prefeitura.cacaplaca.feature.registration.ui.components.RegistrationTopBar
+import com.prefeitura.cacaplaca.feature.registration.ui.state.*
 import com.prefeitura.cacaplaca.ui.theme.*
 import java.io.File
 

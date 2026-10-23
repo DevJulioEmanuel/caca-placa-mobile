@@ -1,4 +1,4 @@
-package com.prefeitura.cacaplaca.feature.registration.ui
+package com.prefeitura.cacaplaca.feature.registration.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
@@ -7,6 +7,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import org.koin.androidx.compose.koinViewModel
+import com.prefeitura.cacaplaca.feature.registration.ui.state.*
+import com.prefeitura.cacaplaca.feature.registration.ui.viewmodel.RegistrationViewModel
+import com.prefeitura.cacaplaca.feature.registration.ui.components.*
 
 @Composable
 fun RegistrationScreen(
@@ -29,7 +32,6 @@ fun RegistrationScreen(
         handleBack()
     }
 
-    // Se a flag de selecionar placa estiver ativa, sobrepõe o novo ecrã
     if (uiState.isSelectingPlate) {
         PlateSelectionContent(
             modifier = modifier,
@@ -41,7 +43,7 @@ fun RegistrationScreen(
             onConfirmSelection = viewModel::onConfirmPlateSelection,
             onBackClick = { viewModel.onClosePlateSelection() }
         )
-        return // Interrompe a composição do resto para focar neste ecrã
+        return
     }
 
     Crossfade(targetState = uiState.currentStep, label = "RegistrationStepAnim") { step ->
@@ -61,7 +63,6 @@ fun RegistrationScreen(
                     uiState = uiState,
                     onBackClick = handleBack,
                     onRemovePhotoClick = viewModel::onRemovePhoto,
-                    // onPlateSelected removido daqui pois agora é feito no PlateSelectionContent
                     onOpenPlateSelectionClick = viewModel::onOpenPlateSelection,
                     onRetryGpsClick = { viewModel.fetchGpsLocation(simulateError = false) },
                     onToggleAdditionalInfo = viewModel::onToggleAdditionalInfo,
