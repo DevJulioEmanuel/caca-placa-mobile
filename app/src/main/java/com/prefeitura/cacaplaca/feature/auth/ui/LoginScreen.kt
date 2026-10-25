@@ -155,7 +155,7 @@ fun LoginScreen(
                             email = it
                             if (emailError != null) emailError = null
                         },
-                        placeholder = { Text("Insira o seu e-mail aqui...") },
+                        placeholder = { Text("Seu email") },
                         singleLine = true,
                         isError = emailError != null,
                         keyboardOptions = KeyboardOptions(
@@ -195,7 +195,7 @@ fun LoginScreen(
                             password = it
                             if (passwordError != null) passwordError = null
                         },
-                        placeholder = { Text("Insira a sua senha aqui...") },
+                        placeholder = { Text("Sua senha") },
                         singleLine = true,
                         isError = passwordError != null,
                         keyboardOptions = KeyboardOptions(

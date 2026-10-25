@@ -11,7 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.Interceptor
 import java.util.concurrent.TimeUnit
 
-val BASE_URL = "http://192.168.0.9:8000/"
+val BASE_URL = "http://192.168.0.5:8000/"
 val networkModule = module {
 
     single {

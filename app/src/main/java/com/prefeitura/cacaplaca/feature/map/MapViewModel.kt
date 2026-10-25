@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prefeitura.cacaplaca.core.gps.LocationRepository
 import com.prefeitura.cacaplaca.core.network.NetworkTracker
+import com.prefeitura.cacaplaca.feature.map.data.MapUiState
+import com.prefeitura.cacaplaca.feature.registration.data.repository.RegistrationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -13,6 +15,7 @@ import kotlinx.coroutines.launch
 class MapViewModel(
     private val locationRepository: LocationRepository,
     private val networkTracker: NetworkTracker,
+    private val registrationRepository: RegistrationRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MapUiState())
@@ -20,6 +23,7 @@ class MapViewModel(
 
     init {
         observeNetwork()
+        loadPlacas()
     }
 
     private fun observeNetwork() {
@@ -38,6 +42,18 @@ class MapViewModel(
 
     fun dismissOfflineBanner() {
         _uiState.update { it.copy(isOfflineBannerVisible = false) }
+    }
+
+    fun loadPlacas() {
+        viewModelScope.launch {
+            registrationRepository.listPlacas().onSuccess { response ->
+                _uiState.update { state ->
+                    state.copy(placas = response.items)
+                }
+            }.onFailure {
+                // Ignore or handle error
+            }
+        }
     }
 
     fun getLocation() {
