@@ -8,5 +8,6 @@ data class MapUiState(
     val isLocationAvailable: Boolean = false,
     val isOffline: Boolean = false,
     val isOfflineBannerVisible: Boolean = true,
-    val placas: List<PlacaItemResponse> = emptyList()
+    val placas: List<PlacaItemResponse> = emptyList(),
+    val selectedPlaca: PlacaItemResponse? = null
 )

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.prefeitura.cacaplaca.core.gps.LocationRepository
 import com.prefeitura.cacaplaca.core.network.NetworkTracker
 import com.prefeitura.cacaplaca.feature.map.data.MapUiState
+import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaItemResponse
 import com.prefeitura.cacaplaca.feature.registration.data.repository.RegistrationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,6 +43,14 @@ class MapViewModel(
 
     fun dismissOfflineBanner() {
         _uiState.update { it.copy(isOfflineBannerVisible = false) }
+    }
+
+    fun selectPlaca(placa: PlacaItemResponse?) {
+        _uiState.update { it.copy(selectedPlaca = placa) }
+    }
+
+    fun clearSelectedPlaca() {
+        _uiState.update { it.copy(selectedPlaca = null) }
     }
 
     fun loadPlacas() {
