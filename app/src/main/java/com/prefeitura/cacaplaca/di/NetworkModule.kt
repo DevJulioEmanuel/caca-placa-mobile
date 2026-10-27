@@ -11,8 +11,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.Interceptor
 import java.util.concurrent.TimeUnit
 
-val BASE_URL = "http://192.168.0.12:8000/"
-val networkModule = module {
+val BASE_URL = "http://192.168.100.26:8000/"
+val networkModule = module {     
 
     single {
         val sessionManager = get<SessionManager>()

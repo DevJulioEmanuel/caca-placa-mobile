@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -65,12 +66,16 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
 
-    //MAPLIBRE
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.koin.androidx.workmanager)
+
     implementation("org.maplibre.gl:android-sdk:11.4.0")
-    // Plugin oficial para desenhar os ícones/pins das placas facilmente
     implementation("org.maplibre.gl:android-plugin-annotation-v9:3.0.1")
 
-    // Retrofit & OkHttp
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")

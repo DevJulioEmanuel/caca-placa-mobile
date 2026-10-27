@@ -53,22 +53,29 @@ fun CameraStepContent(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    var hasCameraPermission by remember {
+    var hasPermissions by remember {
         mutableStateOf(
-            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
-                    PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
         )
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        hasCameraPermission = granted
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        hasPermissions = permissions.values.all { it }
     }
 
     LaunchedEffect(Unit) {
-        if (!hasCameraPermission) {
-            permissionLauncher.launch(Manifest.permission.CAMERA)
+        if (!hasPermissions) {
+            permissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
         }
     }
 
@@ -128,7 +135,7 @@ fun CameraStepContent(
                         )
                     }
 
-                    hasCameraPermission -> {
+                    hasPermissions -> {
                         AndroidView(
                             modifier = Modifier.fillMaxSize(),
                             factory = { ctx ->
@@ -173,17 +180,25 @@ fun CameraStepContent(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Permissão de câmera necessária para fotografar a placa.",
+                                text = "Permissões de câmera e localização necessárias.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = SurfaceWhite,
                                 textAlign = TextAlign.Center
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Button(
-                                onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+                                onClick = { 
+                                    permissionLauncher.launch(
+                                        arrayOf(
+                                            Manifest.permission.CAMERA,
+                                            Manifest.permission.ACCESS_FINE_LOCATION,
+                                            Manifest.permission.ACCESS_COARSE_LOCATION
+                                        )
+                                    ) 
+                                },
                                 colors = ButtonDefaults.buttonColors(containerColor = CacaPlacaOrange)
                             ) {
-                                Text("Permitir Câmera", color = SurfaceWhite)
+                                Text("Permitir Acesso", color = SurfaceWhite)
                             }
                         }
                     }
@@ -227,7 +242,7 @@ fun CameraStepContent(
                             .size(84.dp)
                             .clip(CircleShape)
                             .background(SurfaceWhite)
-                            .clickable(enabled = hasCameraPermission && !isCapturing) {
+                            .clickable(enabled = hasPermissions && !isCapturing) {
                                 if (hasPhoto) {
                                     onPhotoCaptured("")
                                 } else {

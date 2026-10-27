@@ -192,12 +192,17 @@ class RegistrationViewModel(
 
             val result = repository.submitRegistration(formData, photo)
 
-            result.onSuccess {
+            result.onSuccess { status ->
+                val syncStatus = if (status == SubmissionStatus.SENT_TO_API) {
+                    ConfirmationSyncStatus.SYNCED
+                } else {
+                    ConfirmationSyncStatus.PENDING
+                }
                 _uiState.update {
                     it.copy(
                         saveBannerState = SaveBannerState.NONE,
                         currentStep = RegistrationStep.CONFIRMATION,
-                        confirmationStatus = ConfirmationSyncStatus.SYNCED
+                        confirmationStatus = syncStatus
                     )
                 }
             }.onFailure {

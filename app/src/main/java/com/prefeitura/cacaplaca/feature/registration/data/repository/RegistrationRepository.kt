@@ -1,8 +1,17 @@
 package com.prefeitura.cacaplaca.feature.registration.data.repository
 
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.prefeitura.cacaplaca.feature.registration.data.api.RegistrationApi
+import com.prefeitura.cacaplaca.feature.registration.data.local.dao.PlacaDao
+import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaSyncEntity
 import com.prefeitura.cacaplaca.feature.registration.data.model.CapturedPhoto
 import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaCreateData
+import com.prefeitura.cacaplaca.feature.registration.data.worker.SyncPlacaWorker
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -11,9 +20,17 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import retrofit2.Response
 import java.io.File
+import java.io.IOException
+
+enum class SubmissionStatus {
+    SENT_TO_API,
+    SAVED_LOCALLY
+}
 
 class RegistrationRepository(
-    private val api: RegistrationApi
+    private val api: RegistrationApi,
+    private val placaDao: PlacaDao,
+    private val workManager: WorkManager
 ) {
     private fun createPartFromString(stringData: String): RequestBody {
         return stringData.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -22,58 +39,76 @@ class RegistrationRepository(
     suspend fun submitRegistration(
         data: PlacaCreateData,
         photo: CapturedPhoto
-    ): Result<Boolean> {
-        return try {
+    ): Result<SubmissionStatus> = withContext(Dispatchers.IO) {
+        try {
             val file = File(photo.localPath)
             val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
             val fotoPart = MultipartBody.Part.createFormData("foto", file.name, requestFile)
 
-            val codigoContranPart = createPartFromString(data.codigoContran)
-            val latitudePart = createPartFromString(data.latitude.toString())
-            val longitudePart = createPartFromString(data.longitude.toString())
-            val estadoConservacaoPart = createPartFromString(data.estadoConservacao.name)
-
-            val logradouroPart = createPartFromString("Rua Mockada")
-            val bairroPart = createPartFromString("Bairro Mockado")
-            val cepPart = createPartFromString("63900-000")
-
-            val afastamentoPart = data.afastamento?.let { createPartFromString(it.toString()) }
-            val tipoPeliculaPart = data.tipoPelicula?.let { createPartFromString(it.name) }
-            val tipoSubstratoPart = data.tipoSubstrato?.let { createPartFromString(it.name) }
-            val tipoSuportePart = data.tipoSuporte?.let { createPartFromString(it.name) }
-            val estadoPeliculaPart = data.estadoPelicula?.let { createPartFromString(it.name) }
-            val estadoSubstratoPart = data.estadoSubstrato?.let { createPartFromString(it.name) }
-            val estadoSuportePart = data.estadoSuporte?.let { createPartFromString(it.name) }
-            val observacaoPart = data.observacao?.let { createPartFromString(it) }
-
             val response = api.createPlaca(
-                codigoContran = codigoContranPart,
-                latitude = latitudePart,
-                longitude = longitudePart,
-                logradouro = logradouroPart,
-                bairro = bairroPart,
-                cep = cepPart,
-                estadoConservacao = estadoConservacaoPart,
+                codigoContran = createPartFromString(data.codigoContran),
+                latitude = createPartFromString(data.latitude.toString()),
+                longitude = createPartFromString(data.longitude.toString()),
+                estadoConservacao = createPartFromString(data.estadoConservacao.name),
+                logradouro = createPartFromString("Rua Mockada"),
+                bairro = createPartFromString("Bairro Mockado"),
+                cep = createPartFromString("63900-000"),
                 foto = fotoPart,
-                afastamento = afastamentoPart,
-                tipoPelicula = tipoPeliculaPart,
-                tipoSubstrato = tipoSubstratoPart,
-                tipoSuporte = tipoSuportePart,
-                estadoPelicula = estadoPeliculaPart,
-                estadoSubstrato = estadoSubstratoPart,
-                estadoSuporte = estadoSuportePart,
-                observacao = observacaoPart
+                afastamento = data.afastamento?.let { createPartFromString(it.toString()) },
+                tipoPelicula = data.tipoPelicula?.let { createPartFromString(it.name) },
+                tipoSubstrato = data.tipoSubstrato?.let { createPartFromString(it.name) },
+                tipoSuporte = data.tipoSuporte?.let { createPartFromString(it.name) },
+                estadoPelicula = data.estadoPelicula?.let { createPartFromString(it.name) },
+                estadoSubstrato = data.estadoSubstrato?.let { createPartFromString(it.name) },
+                estadoSuporte = data.estadoSuporte?.let { createPartFromString(it.name) },
+                observacao = data.observacao?.let { createPartFromString(it) }
             )
 
             if (response.isSuccessful) {
-                Result.success(true)
+                if (file.exists()) file.delete()
+                Result.success(SubmissionStatus.SENT_TO_API)
             } else {
                 val errorMsg = extractErrorDetail(response)
                 Result.failure(Exception(errorMsg))
             }
+
+        } catch (e: IOException) {
+            saveLocallyAndEnqueueWork(data, photo.localPath)
+            Result.success(SubmissionStatus.SAVED_LOCALLY)
+
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    private suspend fun saveLocallyAndEnqueueWork(data: PlacaCreateData, localPhotoPath: String) {
+        val entity = PlacaSyncEntity(
+            localPhotoPath = localPhotoPath,
+            codigoContran = data.codigoContran,
+            latitude = data.latitude,
+            longitude = data.longitude,
+            estadoConservacao = data.estadoConservacao.name,
+            afastamento = data.afastamento,
+            tipoPelicula = data.tipoPelicula?.name,
+            tipoSubstrato = data.tipoSubstrato?.name,
+            tipoSuporte = data.tipoSuporte?.name,
+            estadoPelicula = data.estadoPelicula?.name,
+            estadoSubstrato = data.estadoSubstrato?.name,
+            estadoSuporte = data.estadoSuporte?.name,
+            observacao = data.observacao
+        )
+
+        placaDao.insertPlacaSync(entity)
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED) // Só roda quando tiver internet
+            .build()
+
+        val syncWorkRequest = OneTimeWorkRequestBuilder<SyncPlacaWorker>()
+            .setConstraints(constraints)
+            .build()
+
+        workManager.enqueue(syncWorkRequest)
     }
 
     private fun extractErrorDetail(response: Response<*>): String {

@@ -8,6 +8,8 @@ import android.location.Location
 import android.location.LocationManager
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
@@ -36,7 +38,11 @@ class DefaultLocationTracker(
         }
 
         return suspendCancellableCoroutine { cont ->
-            fusedLocationProviderClient.lastLocation.apply {
+            val cancellationTokenSource = CancellationTokenSource()
+            fusedLocationProviderClient.getCurrentLocation(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                cancellationTokenSource.token
+            ).apply {
                 if (isComplete) {
                     if (isSuccessful) {
                         cont.resume(result)
@@ -54,6 +60,10 @@ class DefaultLocationTracker(
                 addOnCanceledListener {
                     cont.cancel()
                 }
+            }
+
+            cont.invokeOnCancellation {
+                cancellationTokenSource.cancel()
             }
         }
     }
