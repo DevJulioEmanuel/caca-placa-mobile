@@ -6,10 +6,7 @@ import com.google.android.gms.location.LocationServices
 import com.prefeitura.cacaplaca.core.gps.DefaultLocationTracker
 import com.prefeitura.cacaplaca.core.gps.LocationRepository
 import com.prefeitura.cacaplaca.core.gps.LocationTracker
-import com.prefeitura.cacaplaca.core.gps.DefaultLocationTracker
 import com.prefeitura.cacaplaca.core.network.NetworkTracker
-import com.prefeitura.cacaplaca.feature.home.ui.HomeViewModel
-import com.google.android.gms.location.LocationServices
 import com.prefeitura.cacaplaca.core.session.SessionManager
 import com.prefeitura.cacaplaca.feature.auth.AuthViewModel
 import com.prefeitura.cacaplaca.feature.auth.data.AuthRepository

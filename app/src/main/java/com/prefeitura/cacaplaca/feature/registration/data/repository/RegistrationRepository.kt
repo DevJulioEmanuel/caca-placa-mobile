@@ -10,6 +10,9 @@ import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaSync
 import com.prefeitura.cacaplaca.feature.registration.data.model.CapturedPhoto
 import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaCreateData
 import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaListResponse
+import com.prefeitura.cacaplaca.feature.registration.data.worker.SyncPlacaWorker
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
