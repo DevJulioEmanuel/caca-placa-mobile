@@ -34,7 +34,6 @@ val databaseModule = module {
 
 val workerModule = module {
     single { WorkManager.getInstance(androidContext()) }
-    
     workerOf(::SyncPlacaWorker)
 }
 

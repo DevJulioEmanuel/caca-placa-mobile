@@ -3,21 +3,22 @@ package com.prefeitura.cacaplaca.di
 import com.prefeitura.cacaplaca.core.session.SessionManager
 import com.prefeitura.cacaplaca.feature.auth.data.AuthApi
 import com.prefeitura.cacaplaca.feature.registration.data.api.RegistrationApi
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import org.koin.core.context.GlobalContext
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import okhttp3.Interceptor
 import java.util.concurrent.TimeUnit
 
 val BASE_URL = "http://192.168.100.26:8000/"
-val networkModule = module {     
+
+val networkModule = module {
 
     single {
-        val sessionManager = get<SessionManager>()
-
         val authInterceptor = Interceptor { chain ->
+            val sessionManager = GlobalContext.get().get<SessionManager>()
             val originalRequest = chain.request()
             val token = sessionManager.getToken()
 

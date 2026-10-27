@@ -2,7 +2,7 @@ package com.prefeitura.cacaplaca.feature.registration.data.worker
 
 import android.content.Context
 import androidx.work.CoroutineWorker
-import androidx.work.ListenableWorker.Result as WorkResult
+import androidx.work.ListenableWorker
 import androidx.work.WorkerParameters
 import com.prefeitura.cacaplaca.feature.registration.data.api.RegistrationApi
 import com.prefeitura.cacaplaca.feature.registration.data.local.dao.PlacaDao
@@ -22,12 +22,12 @@ class SyncPlacaWorker(
     private val api: RegistrationApi
 ) : CoroutineWorker(context, workerParams) {
 
-    override suspend fun doWork(): WorkResult = withContext(Dispatchers.IO) {
+    override suspend fun doWork(): ListenableWorker.Result = withContext(Dispatchers.IO) {
         try {
             val pendingPlacas = placaDao.getPendingPlacas()
 
             if (pendingPlacas.isEmpty()) {
-                return@withContext WorkResult.success()
+                return@withContext ListenableWorker.Result.success()
             }
 
             var allSuccess = true
@@ -58,7 +58,7 @@ class SyncPlacaWorker(
                     estadoPelicula = entity.estadoPelicula?.let { createPartFromString(it) },
                     estadoSubstrato = entity.estadoSubstrato?.let { createPartFromString(it) },
                     estadoSuporte = entity.estadoSuporte?.let { createPartFromString(it) },
-                    observacao = entity.observacao?.let { createPartFromString(it) }
+                    observacao = entity.observacao?.ifBlank { null }?.let { createPartFromString(it) }
                 )
 
                 if (response.isSuccessful) {
@@ -69,9 +69,13 @@ class SyncPlacaWorker(
                 }
             }
 
-            if (allSuccess) WorkResult.success() else WorkResult.retry()
+            if (allSuccess) {
+                ListenableWorker.Result.success()
+            } else {
+                ListenableWorker.Result.retry()
+            }
         } catch (e: Exception) {
-            WorkResult.retry()
+            ListenableWorker.Result.retry()
         }
     }
 

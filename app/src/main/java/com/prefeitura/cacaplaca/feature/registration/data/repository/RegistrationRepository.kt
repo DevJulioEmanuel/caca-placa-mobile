@@ -61,7 +61,7 @@ class RegistrationRepository(
                 estadoPelicula = data.estadoPelicula?.let { createPartFromString(it.name) },
                 estadoSubstrato = data.estadoSubstrato?.let { createPartFromString(it.name) },
                 estadoSuporte = data.estadoSuporte?.let { createPartFromString(it.name) },
-                observacao = data.observacao?.let { createPartFromString(it) }
+                observacao = data.observacao?.ifBlank { null }?.let { createPartFromString(it) }
             )
 
             if (response.isSuccessful) {
@@ -95,7 +95,7 @@ class RegistrationRepository(
             estadoPelicula = data.estadoPelicula?.name,
             estadoSubstrato = data.estadoSubstrato?.name,
             estadoSuporte = data.estadoSuporte?.name,
-            observacao = data.observacao
+            observacao = data.observacao?.ifBlank { null }
         )
 
         placaDao.insertPlacaSync(entity)

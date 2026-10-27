@@ -20,7 +20,7 @@ class SessionManager(context: Context) {
     )
 
     fun saveToken(token: String) {
-        prefs.edit().putString(KEY_TOKEN, token).apply()
+        prefs.edit().putString(KEY_TOKEN, token).commit()
     }
 
     fun getToken(): String? {
@@ -28,7 +28,7 @@ class SessionManager(context: Context) {
     }
 
     fun saveUserName(userName: String) {
-        prefs.edit().putString(KEY_USER_NAME, userName).apply()
+        prefs.edit().putString(KEY_USER_NAME, userName).commit()
     }
 
     fun getUserName(): String? {
@@ -40,7 +40,7 @@ class SessionManager(context: Context) {
     }
 
     fun clearSession() {
-        prefs.edit().clear().apply()
+        prefs.edit().clear().commit()
     }
 
     companion object {
