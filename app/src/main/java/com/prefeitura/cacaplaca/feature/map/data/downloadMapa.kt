@@ -1,4 +1,4 @@
-package com.prefeitura.cacaplaca.feature.map
+package com.prefeitura.cacaplaca.feature.map.data
 
 import android.content.Context
 import android.util.Log

@@ -1,9 +1,11 @@
 package com.prefeitura.cacaplaca.feature.registration.data.api
 
+import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaListResponse
 import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
+import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
@@ -30,4 +32,7 @@ interface RegistrationApi {
         @Part("estado_suporte") estadoSuporte: RequestBody? = null,
         @Part("observacao") observacao: RequestBody? = null
     ): Response<PlacaResponse>
+
+    @GET("placas/")
+    suspend fun listPlacas(): Response<PlacaListResponse>
 }

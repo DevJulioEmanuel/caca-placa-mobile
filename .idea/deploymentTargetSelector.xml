@@ -2,12 +2,12 @@
 <project version="4">
   <component name="deploymentTargetSelector">
     <selectionStates>
-      <SelectionState runConfigName="Debug">
+      <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-10-21T14:50:27.736847611Z">
+        <DropdownSelection timestamp="2026-10-25T00:37:37.389176Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="Wireless" identifier="serviceName=adb-b1d926847d79-pE0Hd4" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/emanuel/.android/avd/Medium_Phone.avd" />
             </handle>
           </Target>
         </DropdownSelection>

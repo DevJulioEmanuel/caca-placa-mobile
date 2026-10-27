@@ -9,9 +9,7 @@ import com.prefeitura.cacaplaca.feature.registration.data.local.dao.PlacaDao
 import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaSyncEntity
 import com.prefeitura.cacaplaca.feature.registration.data.model.CapturedPhoto
 import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaCreateData
-import com.prefeitura.cacaplaca.feature.registration.data.worker.SyncPlacaWorker
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaListResponse
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -34,6 +32,19 @@ class RegistrationRepository(
 ) {
     private fun createPartFromString(stringData: String): RequestBody {
         return stringData.toRequestBody("text/plain".toMediaTypeOrNull())
+    }
+
+    suspend fun listPlacas(): Result<PlacaListResponse> {
+        return try {
+            val response = api.listPlacas()
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception(extractErrorDetail(response)))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     suspend fun submitRegistration(

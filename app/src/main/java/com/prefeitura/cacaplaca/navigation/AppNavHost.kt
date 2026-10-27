@@ -12,7 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.prefeitura.cacaplaca.feature.auth.ui.LoginScreen
 import com.prefeitura.cacaplaca.feature.auth.ui.RecoverPasswordScreen
 import com.prefeitura.cacaplaca.feature.home.ui.HomeScreen
-import com.prefeitura.cacaplaca.feature.map.Map
+import com.prefeitura.cacaplaca.feature.map.ui.Map
 
 import androidx.lifecycle.Lifecycle
 import com.prefeitura.cacaplaca.feature.auth.ui.EmailSentScreen
@@ -100,6 +100,9 @@ fun AppNavHost(
                 modifier = Modifier.safeDrawingPadding(),
                 onBackClicked = {
                     navController.safePopBackStack()
+                },
+                onProfileClicked = {
+                    navController.navigate(Screen.Profile)
                 }
             )
         }
