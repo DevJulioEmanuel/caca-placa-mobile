@@ -17,6 +17,8 @@ import com.prefeitura.cacaplaca.feature.map.ui.Map
 import androidx.lifecycle.Lifecycle
 import com.prefeitura.cacaplaca.feature.auth.ui.EmailSentScreen
 import com.prefeitura.cacaplaca.feature.registration.ui.screens.RegistrationScreen
+import com.prefeitura.cacaplaca.core.session.SessionManager
+import org.koin.compose.koinInject
 
 fun NavHostController.safePopBackStack() {
     val currentEntry = this.currentBackStackEntry
@@ -32,6 +34,7 @@ fun AppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     startDestination: Screen = Screen.Auth,
+    sessionManager: SessionManager = koinInject()
 ) {
     NavHost(
         navController = navController,
@@ -90,7 +93,10 @@ fun AppNavHost(
                     navController.navigate(Screen.Map)
                 },
                 onProfileClicked = {
-                    navController.navigate(Screen.Profile)
+                    sessionManager.clearSession()
+                    navController.navigate(Screen.Auth) {
+                        popUpTo(0)
+                    }
                 },
             )
         }

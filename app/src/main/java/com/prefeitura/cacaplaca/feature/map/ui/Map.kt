@@ -82,6 +82,7 @@ import com.prefeitura.cacaplaca.R
 import com.prefeitura.cacaplaca.feature.map.MapViewModel
 import com.prefeitura.cacaplaca.feature.map.data.verificarEBaixarMapaOffline
 import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaItemResponse
+import com.prefeitura.cacaplaca.feature.update.ui.UpdatePlacaDialog
 import com.prefeitura.cacaplaca.ui.components.CacaPlacaHeader
 import com.prefeitura.cacaplaca.ui.components.OfflineBanner
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaBackground
@@ -456,7 +457,11 @@ fun Map(
             PlacaDetailsBottomSheet(
                 visible = uiState.selectedPlaca != null,
                 placa = uiState.selectedPlaca,
-                onDismiss = { viewModel.clearSelectedPlaca() }
+                onDismiss = { viewModel.clearSelectedPlaca() },
+                onUpdateSuccess = {
+                    viewModel.loadPlacas()
+                    viewModel.clearSelectedPlaca()
+                }
             )
         }
     }
@@ -482,7 +487,8 @@ fun Map(
 private fun PlacaDetailsBottomSheet(
     visible: Boolean,
     placa: PlacaItemResponse?,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onUpdateSuccess: () -> Unit
 ) {
     if (visible && placa != null) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -494,7 +500,8 @@ private fun PlacaDetailsBottomSheet(
         ) {
             PlacaDetailsCard(
                 placa = placa,
-                onDismiss = onDismiss
+                onDismiss = onDismiss,
+                onUpdateSuccess = onUpdateSuccess
             )
         }
     }
@@ -504,10 +511,24 @@ private fun PlacaDetailsBottomSheet(
 private fun PlacaDetailsCard(
     placa: PlacaItemResponse,
     onDismiss: () -> Unit,
+    onUpdateSuccess: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var isExpanded by remember(placa.id) { mutableStateOf(false) }
     var selectedTab by remember(placa.id) { mutableStateOf(0) }
+
+    var showUpdateDialog by remember { mutableStateOf(false) }
+
+    if (showUpdateDialog) {
+        UpdatePlacaDialog(
+            placa = placa,
+            onDismiss = { showUpdateDialog = false },
+            onUpdateSuccess = {
+                showUpdateDialog = false
+                onUpdateSuccess()
+            }
+        )
+    }
 
     Column(
         modifier = modifier
@@ -763,6 +784,23 @@ private fun PlacaDetailsCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = CacaPlacaTextSecondary
                 )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = { showUpdateDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = CacaPlacaOrange)
+                ) {
+                    Text(
+                        text = "Editar Informações da placa",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                        color = Color.White
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))

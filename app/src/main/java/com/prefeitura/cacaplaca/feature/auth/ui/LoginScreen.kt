@@ -35,15 +35,18 @@ import androidx.compose.ui.unit.sp
 import com.prefeitura.cacaplaca.R
 import com.prefeitura.cacaplaca.feature.auth.AuthEvent
 import com.prefeitura.cacaplaca.feature.auth.AuthState
+import com.prefeitura.cacaplaca.core.session.SessionManager
 import com.prefeitura.cacaplaca.feature.auth.AuthViewModel
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     onNavigateToRecover: () -> Unit,
     onLoginSuccess: () -> Unit,
-    viewModel: AuthViewModel = koinViewModel()
+    viewModel: AuthViewModel = koinViewModel(),
+    sessionManager: SessionManager = koinInject()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
@@ -55,6 +58,9 @@ fun LoginScreen(
 
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
+
+    var secretTapCount by remember { mutableStateOf(0) }
+    var showIpDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
@@ -70,6 +76,40 @@ fun LoginScreen(
                 else -> Unit
             }
         }
+    }
+
+
+    if (showIpDialog) {
+        var ipInput by remember { mutableStateOf(sessionManager.getBaseUrl() ?: "") }
+        AlertDialog(
+            onDismissRequest = { showIpDialog = false },
+            title = { Text(text = "Configuração Local") },
+            text = {
+                Column {
+                    Text("Insira o IP do Backend Local:")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = ipInput,
+                        onValueChange = { ipInput = it },
+                        placeholder = { Text("Ex: 192.168.1.10:8000") },
+                        singleLine = true
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    sessionManager.saveBaseUrl(ipInput)
+                    showIpDialog = false
+                }) {
+                    Text("Salvar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showIpDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 
     Box(
@@ -105,7 +145,18 @@ fun LoginScreen(
                 contentDescription = "Logo Caça Placas",
                 modifier = Modifier
                     .wrapContentHeight()
-                    .size(200.dp),
+                    .size(200.dp)
+                    .clickable(
+                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                        indication = null,
+                        onClick = {
+                            secretTapCount++
+                            if (secretTapCount >= 5) {
+                                secretTapCount = 0
+                                showIpDialog = true
+                            }
+                        }
+                    ),
                 contentScale = ContentScale.Fit
             )
 
@@ -131,7 +182,41 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Box(
+        
+    if (showIpDialog) {
+        var ipInput by remember { mutableStateOf(sessionManager.getBaseUrl() ?: "") }
+        AlertDialog(
+            onDismissRequest = { showIpDialog = false },
+            title = { Text(text = "Configuração Local") },
+            text = {
+                Column {
+                    Text("Insira o IP do Backend Local:")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = ipInput,
+                        onValueChange = { ipInput = it },
+                        placeholder = { Text("Ex: 192.168.1.10:8000") },
+                        singleLine = true
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    sessionManager.saveBaseUrl(ipInput)
+                    showIpDialog = false
+                }) {
+                    Text("Salvar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showIpDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
