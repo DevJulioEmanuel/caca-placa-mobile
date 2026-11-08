@@ -11,7 +11,7 @@ import com.prefeitura.cacaplaca.core.session.SessionManager
 import com.prefeitura.cacaplaca.feature.auth.AuthViewModel
 import com.prefeitura.cacaplaca.feature.auth.data.AuthRepository
 import com.prefeitura.cacaplaca.feature.home.ui.HomeViewModel
-import com.prefeitura.cacaplaca.feature.map.MapViewModel
+import com.prefeitura.cacaplaca.feature.map.ui.viewmodel.MapViewModel
 import com.prefeitura.cacaplaca.feature.registration.data.local.AppDatabase
 import com.prefeitura.cacaplaca.feature.registration.data.repository.RegistrationRepository
 import com.prefeitura.cacaplaca.feature.registration.data.worker.SyncPlacaWorker
