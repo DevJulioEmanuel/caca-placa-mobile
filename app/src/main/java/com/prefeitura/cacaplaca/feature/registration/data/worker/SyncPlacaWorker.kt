@@ -6,6 +6,7 @@ import androidx.work.ListenableWorker
 import androidx.work.WorkerParameters
 import com.prefeitura.cacaplaca.feature.registration.data.api.RegistrationApi
 import com.prefeitura.cacaplaca.feature.registration.data.local.dao.PlacaDao
+import com.prefeitura.cacaplaca.feature.registration.data.mapper.toEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -27,6 +28,7 @@ class SyncPlacaWorker(
             val pendingPlacas = placaDao.getPendingPlacas()
 
             if (pendingPlacas.isEmpty()) {
+                refreshCache()
                 return@withContext ListenableWorker.Result.success()
             }
 
@@ -70,6 +72,7 @@ class SyncPlacaWorker(
             }
 
             if (allSuccess) {
+                refreshCache()
                 ListenableWorker.Result.success()
             } else {
                 ListenableWorker.Result.retry()
@@ -77,6 +80,16 @@ class SyncPlacaWorker(
         } catch (e: Exception) {
             ListenableWorker.Result.retry()
         }
+    }
+
+    private suspend fun refreshCache() {
+        try {
+            val listResponse = api.listPlacas()
+            if (listResponse.isSuccessful && listResponse.body() != null) {
+                val entities = listResponse.body()!!.items.map { it.toEntity() }
+                placaDao.insertCachedPlacas(entities)
+            }
+        } catch (_: Exception) {}
     }
 
     private fun createPartFromString(stringData: String): RequestBody {

@@ -12,7 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.prefeitura.cacaplaca.feature.auth.ui.LoginScreen
 import com.prefeitura.cacaplaca.feature.auth.ui.RecoverPasswordScreen
 import com.prefeitura.cacaplaca.feature.home.ui.HomeScreen
-import com.prefeitura.cacaplaca.feature.map.ui.Map
+import com.prefeitura.cacaplaca.feature.map.ui.screens.MapScreen
 
 import androidx.lifecycle.Lifecycle
 import com.prefeitura.cacaplaca.feature.auth.ui.EmailSentScreen
@@ -102,7 +102,7 @@ fun AppNavHost(
         }
 
         composable<Screen.Map> {
-            Map(
+            MapScreen(
                 modifier = Modifier.safeDrawingPadding(),
                 onBackClicked = {
                     navController.safePopBackStack()

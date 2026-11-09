@@ -13,7 +13,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
-val BASE_URL = "http://192.168.100.27:8000/"
+val BASE_URL = "http://192.168.18.252:8000/"
 
 val networkModule = module {
 
