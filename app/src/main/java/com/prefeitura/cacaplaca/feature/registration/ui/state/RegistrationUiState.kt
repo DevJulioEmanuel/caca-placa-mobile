@@ -1,5 +1,6 @@
 package com.prefeitura.cacaplaca.feature.registration.ui.state
 
+import com.prefeitura.cacaplaca.core.model.*
 import com.prefeitura.cacaplaca.feature.registration.data.model.*
 
 data class RegistrationUiState(

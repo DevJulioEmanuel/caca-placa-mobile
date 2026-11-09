@@ -8,7 +8,7 @@ import com.prefeitura.cacaplaca.feature.registration.data.api.RegistrationApi
 import com.prefeitura.cacaplaca.feature.registration.data.local.dao.PlacaDao
 import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaSyncEntity
 import com.prefeitura.cacaplaca.feature.registration.data.model.CapturedPhoto
-import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaCreateData
+import com.prefeitura.cacaplaca.core.model.PlacaCreateData
 import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaListResponse
 import com.prefeitura.cacaplaca.feature.registration.data.worker.SyncPlacaWorker
 import kotlinx.coroutines.Dispatchers

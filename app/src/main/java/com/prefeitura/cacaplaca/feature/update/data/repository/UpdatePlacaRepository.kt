@@ -4,14 +4,12 @@ import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaItemRespons
 import java.io.File
 
 interface UpdatePlacaRepository {
-    suspend fun updateEventoPlaca(
+    suspend fun updatePlaca(
         placaId: String,
-        eventoId: String,
-        estadoConservacao: String?,
-        estadoPelicula: String?,
-        estadoSubstrato: String?,
-        estadoSuporte: String?,
-        observacao: String?,
+        codigoContran: String?,
+        tipoPelicula: String?,
+        tipoSubstrato: String?,
+        tipoSuporte: String?,
         foto: File?
     ): Result<PlacaItemResponse>
 }

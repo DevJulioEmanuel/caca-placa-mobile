@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaItemResponse
+import com.prefeitura.cacaplaca.core.model.PlateTypeOption
 import com.prefeitura.cacaplaca.feature.update.data.UpdatePlacaUiState
 import com.prefeitura.cacaplaca.feature.update.data.repository.UpdatePlacaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +20,12 @@ class UpdatePlacaViewModel(
     private val _uiState = MutableStateFlow(UpdatePlacaUiState())
     val uiState = _uiState.asStateFlow()
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
+
+    private val _tempSelectedPlate = MutableStateFlow<PlateTypeOption?>(null)
+    val tempSelectedPlate = _tempSelectedPlate.asStateFlow()
+
     fun initData(placa: PlacaItemResponse) {
         val endereco = placa.endereco
         val localizacaoFormatada = if (endereco != null) {
@@ -30,13 +37,11 @@ class UpdatePlacaViewModel(
         _uiState.update {
             it.copy(
                 placaId = placa.id ?: "",
-                eventoId = placa.ultimoEvento?.id ?: "",
                 codigoPlaca = placa.codigoContran,
                 localizacao = localizacaoFormatada,
-                estadoPelicula = placa.ultimoEvento?.estadoPelicula ?: "",
-                estadoSubstrato = placa.ultimoEvento?.estadoSubstrato ?: "",
-                estadoSuporte = placa.ultimoEvento?.estadoSuporte ?: "",
-                observacao = placa.ultimoEvento?.observacao ?: ""
+                tipoPelicula = placa.tipoPelicula ?: "",
+                tipoSubstrato = placa.tipoSubstrato ?: "",
+                tipoSuporte = placa.tipoSuporte ?: ""
             )
         }
     }
@@ -45,20 +50,36 @@ class UpdatePlacaViewModel(
         _uiState.update { it.copy(photoUri = uri) }
     }
 
-    fun onEstadoPeliculaChanged(estado: String) {
-        _uiState.update { it.copy(estadoPelicula = estado) }
+    fun onTipoPeliculaChanged(tipo: String) {
+        _uiState.update { it.copy(tipoPelicula = tipo) }
     }
 
-    fun onEstadoSubstratoChanged(estado: String) {
-        _uiState.update { it.copy(estadoSubstrato = estado) }
+    fun onTipoSubstratoChanged(tipo: String) {
+        _uiState.update { it.copy(tipoSubstrato = tipo) }
     }
 
-    fun onEstadoSuporteChanged(estado: String) {
-        _uiState.update { it.copy(estadoSuporte = estado) }
+    fun onTipoSuporteChanged(tipo: String) {
+        _uiState.update { it.copy(tipoSuporte = tipo) }
     }
 
-    fun onObservacaoChanged(texto: String) {
-        _uiState.update { it.copy(observacao = texto) }
+    // Funções para a seleção do código da placa
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
+    }
+
+    fun onTempPlateSelected(plate: PlateTypeOption) {
+        _tempSelectedPlate.value = plate
+    }
+
+    fun confirmPlateSelection() {
+        _tempSelectedPlate.value?.let { plate ->
+            _uiState.update { it.copy(codigoPlaca = plate.code) }
+        }
+    }
+
+    fun resetPlateSelection() {
+        _searchQuery.value = ""
+        _tempSelectedPlate.value = null
     }
 
     fun submitUpdate(imageFile: File?) {
@@ -66,14 +87,12 @@ class UpdatePlacaViewModel(
         viewModelScope.launch {
             val currentState = _uiState.value
 
-            val result = repository.updateEventoPlaca(
+            val result = repository.updatePlaca(
                 placaId = currentState.placaId,
-                eventoId = currentState.eventoId,
-                estadoConservacao = currentState.estadoConservacao,
-                estadoPelicula = currentState.estadoPelicula,
-                estadoSubstrato = currentState.estadoSubstrato,
-                estadoSuporte = currentState.estadoSuporte,
-                observacao = currentState.observacao,
+                codigoContran = currentState.codigoPlaca,
+                tipoPelicula = currentState.tipoPelicula,
+                tipoSubstrato = currentState.tipoSubstrato,
+                tipoSuporte = currentState.tipoSuporte,
                 foto = imageFile
             )
 

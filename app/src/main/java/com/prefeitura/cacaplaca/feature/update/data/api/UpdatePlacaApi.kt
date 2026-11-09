@@ -11,15 +11,18 @@ import retrofit2.http.Path
 
 interface UpdatePlacaApi {
     @Multipart
-    @PATCH("/placas/{placa_id}/eventos/{evento_id}")
-    suspend fun updateEventoPlaca(
+    @PATCH("/placas/{placa_id}")
+    suspend fun updatePlaca(
         @Path("placa_id") placaId: String,
-        @Path("evento_id") eventoId: String,
-        @Part("estado_conservacao") estadoConservacao: RequestBody?,
-        @Part("estado_pelicula") estadoPelicula: RequestBody?,
-        @Part("estado_substrato") estadoSubstrato: RequestBody?,
-        @Part("estado_suporte") estadoSuporte: RequestBody?,
-        @Part("observacao") observacao: RequestBody?,
+        @Part("codigo_contran") codigoContran: RequestBody?,
+        @Part("afastamento") afastamento: RequestBody?,
+        @Part("tipo_pelicula") tipoPelicula: RequestBody?,
+        @Part("tipo_substrato") tipoSubstrato: RequestBody?,
+        @Part("tipo_suporte") tipoSuporte: RequestBody?,
+        @Part("logradouro") logradouro: RequestBody?,
+        @Part("bairro") bairro: RequestBody?,
+        @Part("cep") cep: RequestBody?,
+        @Part("referencia") referencia: RequestBody?,
         @Part foto: MultipartBody.Part?
     ): Response<PlacaItemResponse>
 }

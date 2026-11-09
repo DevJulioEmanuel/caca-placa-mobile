@@ -7,18 +7,8 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -26,27 +16,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,6 +32,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaItemResponse
+import com.prefeitura.cacaplaca.core.model.TipoPelicula
+import com.prefeitura.cacaplaca.core.model.TipoSubstrato
+import com.prefeitura.cacaplaca.core.model.TipoSuporte
+import com.prefeitura.cacaplaca.core.model.availablePlatesList
+import com.prefeitura.cacaplaca.ui.components.PlateSelectionContent
 import com.prefeitura.cacaplaca.feature.update.UpdatePlacaViewModel
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaNavy
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaOrange
@@ -68,6 +44,11 @@ import org.koin.androidx.compose.koinViewModel
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+
+private fun formatEnumText(text: String): String {
+    if (text.isEmpty()) return ""
+    return text.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() }
+}
 
 @Composable
 fun UpdatePlacaDialog(
@@ -77,7 +58,11 @@ fun UpdatePlacaDialog(
     viewModel: UpdatePlacaViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val tempSelectedPlate by viewModel.tempSelectedPlate.collectAsState()
     val context = LocalContext.current
+
+    var showPlateSelection by remember { mutableStateOf(false) }
 
     LaunchedEffect(placa) {
         viewModel.initData(placa)
@@ -91,136 +76,193 @@ fun UpdatePlacaDialog(
                 onUpdateSuccess()
             }
         )
+    } else if (showPlateSelection) {
+        Dialog(
+            onDismissRequest = {
+                viewModel.resetPlateSelection()
+                showPlateSelection = false
+            },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            PlateSelectionContent(
+                title = "Alterar código da placa",
+                subtitle = "Edição de dados cadastrais",
+                query = searchQuery,
+                onQueryChanged = viewModel::onSearchQueryChanged,
+                availablePlates = availablePlatesList,
+                tempSelectedPlate = tempSelectedPlate,
+                onTempPlateSelected = viewModel::onTempPlateSelected,
+                onConfirmSelection = {
+                    viewModel.confirmPlateSelection()
+                    showPlateSelection = false
+                },
+                onBackClick = {
+                    viewModel.resetPlateSelection()
+                    showPlateSelection = false
+                }
+            )
+        }
     } else {
         Dialog(
             onDismissRequest = onDismiss,
-            properties = DialogProperties(usePlatformDefaultWidth = false)
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = true
+            )
         ) {
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = Color.White,
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.92f)
-                    .padding(vertical = 16.dp)
+                    .fillMaxSize()
+                    .padding(vertical = 40.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Column(
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White,
                     modifier = Modifier
-                        .padding(24.dp)
-                        .verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxWidth(0.92f)
+                        .wrapContentHeight()
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(
-                            text = "Editar Dados da placa: ${uiState.codigoPlaca}",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = CacaPlacaNavy
-                        )
-                        IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = null,
-                                tint = CacaPlacaNavy
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Editar Dados da placa: ${uiState.codigoPlaca}",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = CacaPlacaNavy
                             )
+                            IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = null,
+                                    tint = CacaPlacaNavy
+                                )
+                            }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                    PhotoSection(
-                        photoUri = uiState.photoUri,
-                        onPhotoSelected = viewModel::onPhotoSelected
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    ReadOnlyField(label = "Código da placa:", value = uiState.codigoPlaca)
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    ReadOnlyField(label = "Localização:", value = uiState.localizacao)
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    DropdownField(
-                        label = "Estado da Película:",
-                        selectedValue = uiState.estadoPelicula,
-                        onValueChange = viewModel::onEstadoPeliculaChanged
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    DropdownField(
-                        label = "Estado do Substrato:",
-                        selectedValue = uiState.estadoSubstrato,
-                        onValueChange = viewModel::onEstadoSubstratoChanged
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    DropdownField(
-                        label = "Estado do Suporte:",
-                        selectedValue = uiState.estadoSuporte,
-                        onValueChange = viewModel::onEstadoSuporteChanged
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = "Observações:",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp,
-                            color = CacaPlacaNavy
+                        PhotoSection(
+                            photoUri = uiState.photoUri,
+                            onPhotoSelected = viewModel::onPhotoSelected
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        OutlinedTextField(
-                            value = uiState.observacao,
-                            onValueChange = viewModel::onObservacaoChanged,
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Text(text = "Código da placa:", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = CacaPlacaNavy)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            OutlinedButton(
+                                onClick = { showPlateSelection = true },
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+                                contentPadding = PaddingValues(horizontal = 16.dp),
+                                border = BorderStroke(1.dp, Color.Gray)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Start
+                                ) {
+                                    Text(
+                                        text = uiState.codigoPlaca,
+                                        color = Color.Black,
+                                        fontSize = 16.sp
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        ReadOnlyField(label = "Localização:", value = uiState.localizacao)
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        DropdownField(
+                            label = "Tipo de Película:",
+                            selectedValue = uiState.tipoPelicula,
+                            options = TipoPelicula.values().map { it.name },
+                            onValueChange = viewModel::onTipoPeliculaChanged
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        DropdownField(
+                            label = "Tipo de Substrato:",
+                            selectedValue = uiState.tipoSubstrato,
+                            options = TipoSubstrato.values().map { it.name },
+                            onValueChange = viewModel::onTipoSubstratoChanged
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        DropdownField(
+                            label = "Tipo de Suporte:",
+                            selectedValue = uiState.tipoSuporte,
+                            options = TipoSuporte.values().map { it.name },
+                            onValueChange = viewModel::onTipoSuporteChanged
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        if (!uiState.errorMessage.isNullOrEmpty()) {
+                            Surface(
+                                color = Color(0xFFFFEBEE),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = uiState.errorMessage!!,
+                                    color = Color(0xFFD32F2F),
+                                    fontSize = 13.sp,
+                                    modifier = Modifier.padding(12.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+
+                        Button(
+                            onClick = {
+                                val file = uiState.photoUri?.let { uriToFile(context, it) }
+                                viewModel.submitUpdate(file)
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(min = 100.dp),
+                                .height(48.dp),
                             shape = RoundedCornerShape(8.dp),
-                            maxLines = 4
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Button(
-                        onClick = {
-                            val file = uiState.photoUri?.let { uriToFile(context, it) }
-                            viewModel.submitUpdate(file)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = CacaPlacaNavy),
-                        enabled = !uiState.isLoading
-                    ) {
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                        } else {
-                            Text(text = "Salvar alterações", color = Color.White, fontWeight = FontWeight.Bold)
+                            colors = ButtonDefaults.buttonColors(containerColor = CacaPlacaNavy),
+                            enabled = !uiState.isLoading
+                        ) {
+                            if (uiState.isLoading) {
+                                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                            } else {
+                                Text(text = "Salvar alterações", color = Color.White, fontWeight = FontWeight.Bold)
+                            }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, CacaPlacaNavy),
-                        enabled = !uiState.isLoading
-                    ) {
-                        Text(text = "Cancelar", color = CacaPlacaNavy, fontWeight = FontWeight.Bold)
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, CacaPlacaNavy),
+                            enabled = !uiState.isLoading
+                        ) {
+                            Text(text = "Cancelar", color = CacaPlacaNavy, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
@@ -239,15 +281,20 @@ private fun PhotoSection(
         onPhotoSelected(uri)
     }
 
+    val launchGallery = {
+        launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+    }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
         Box(
             modifier = Modifier
-                .size(80.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp))
+                .size(96.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp))
+                .clickable { launchGallery() }
                 .padding(if (photoUri == null) 16.dp else 0.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -259,11 +306,12 @@ private fun PhotoSection(
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
+                // Ícone na caixa vazia
                 Icon(
                     imageVector = Icons.Default.PhotoCamera,
                     contentDescription = null,
                     tint = CacaPlacaOrange,
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(48.dp) // Ícone também maior
                 )
             }
         }
@@ -274,9 +322,7 @@ private fun PhotoSection(
             Text(text = "Foto Cadastrada", fontWeight = FontWeight.Bold, color = CacaPlacaNavy)
             Spacer(modifier = Modifier.height(4.dp))
             OutlinedButton(
-                onClick = {
-                    launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                },
+                onClick = launchGallery,
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, Color.LightGray)
             ) {
@@ -306,8 +352,12 @@ private fun ReadOnlyField(label: String, value: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DropdownField(label: String, selectedValue: String, onValueChange: (String) -> Unit) {
-    val options = listOf("BOM", "REGULAR", "RUIM")
+private fun DropdownField(
+    label: String,
+    selectedValue: String,
+    options: List<String>,
+    onValueChange: (String) -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -319,7 +369,7 @@ private fun DropdownField(label: String, selectedValue: String, onValueChange: (
             onExpandedChange = { expanded = !expanded }
         ) {
             OutlinedTextField(
-                value = selectedValue.ifEmpty { "Selecionar" },
+                value = if (selectedValue.isNotEmpty()) formatEnumText(selectedValue) else "Selecionar",
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -332,11 +382,11 @@ private fun DropdownField(label: String, selectedValue: String, onValueChange: (
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                options.forEach { option ->
+                options.forEach { backendValue ->
                     DropdownMenuItem(
-                        text = { Text(option) },
+                        text = { Text(formatEnumText(backendValue)) },
                         onClick = {
-                            onValueChange(option)
+                            onValueChange(backendValue)
                             expanded = false
                         }
                     )
@@ -409,9 +459,14 @@ private fun SuccessDialog(codigoPlaca: String, onReturn: () -> Unit) {
 
 private fun uriToFile(context: Context, uri: Uri): File? {
     return try {
-        val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-        val tempFile = File.createTempFile("upload", ".jpg", context.cacheDir)
+        val contentResolver = context.contentResolver
+        val mimeType = contentResolver.getType(uri) ?: "image/jpeg"
+        val extension = android.webkit.MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType) ?: "jpg"
+
+        val inputStream: InputStream? = contentResolver.openInputStream(uri)
+        val tempFile = File.createTempFile("upload_", ".$extension", context.cacheDir)
         val outputStream = FileOutputStream(tempFile)
+
         inputStream?.copyTo(outputStream)
         inputStream?.close()
         outputStream.close()

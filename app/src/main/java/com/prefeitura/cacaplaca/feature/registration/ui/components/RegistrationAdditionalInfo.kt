@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.prefeitura.cacaplaca.core.model.*
 import com.prefeitura.cacaplaca.feature.registration.data.model.*
 import com.prefeitura.cacaplaca.ui.theme.*
 

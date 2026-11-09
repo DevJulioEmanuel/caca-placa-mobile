@@ -1,5 +1,6 @@
 package com.prefeitura.cacaplaca.feature.update.data.repository
 
+import android.webkit.MimeTypeMap
 import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaItemResponse
 import com.prefeitura.cacaplaca.feature.update.data.api.UpdatePlacaApi
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -12,43 +13,47 @@ class UpdatePlacaRepositoryImpl(
     private val api: UpdatePlacaApi
 ) : UpdatePlacaRepository {
 
-    override suspend fun updateEventoPlaca(
+    override suspend fun updatePlaca(
         placaId: String,
-        eventoId: String,
-        estadoConservacao: String?,
-        estadoPelicula: String?,
-        estadoSubstrato: String?,
-        estadoSuporte: String?,
-        observacao: String?,
+        codigoContran: String?,
+        tipoPelicula: String?,
+        tipoSubstrato: String?,
+        tipoSuporte: String?,
         foto: File?
     ): Result<PlacaItemResponse> {
         return try {
-            val conservacaoBody = estadoConservacao?.ifEmpty { null }?.toRequestBody("text/plain".toMediaTypeOrNull())
-            val peliculaBody = estadoPelicula?.ifEmpty { null }?.toRequestBody("text/plain".toMediaTypeOrNull())
-            val substratoBody = estadoSubstrato?.ifEmpty { null }?.toRequestBody("text/plain".toMediaTypeOrNull())
-            val suporteBody = estadoSuporte?.ifEmpty { null }?.toRequestBody("text/plain".toMediaTypeOrNull())
-            val observacaoBody = observacao?.ifEmpty { null }?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val codigoBody = codigoContran?.ifEmpty { null }?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val peliculaBody = tipoPelicula?.ifEmpty { null }?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val substratoBody = tipoSubstrato?.ifEmpty { null }?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val suporteBody = tipoSuporte?.ifEmpty { null }?.toRequestBody("text/plain".toMediaTypeOrNull())
 
             val fotoPart = foto?.let {
-                val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
+                val extension = it.extension
+                val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: "image/jpeg"
+
+                val requestFile = it.asRequestBody(mimeType.toMediaTypeOrNull())
                 MultipartBody.Part.createFormData("foto", it.name, requestFile)
             }
 
-            val response = api.updateEventoPlaca(
+            val response = api.updatePlaca(
                 placaId = placaId,
-                eventoId = eventoId,
-                estadoConservacao = conservacaoBody,
-                estadoPelicula = peliculaBody,
-                estadoSubstrato = substratoBody,
-                estadoSuporte = suporteBody,
-                observacao = observacaoBody,
+                codigoContran = codigoBody,
+                afastamento = null,
+                tipoPelicula = peliculaBody,
+                tipoSubstrato = substratoBody,
+                tipoSuporte = suporteBody,
+                logradouro = null,
+                bairro = null,
+                cep = null,
+                referencia = null,
                 foto = fotoPart
             )
 
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {
-                Result.failure(Exception("Erro HTTP: ${response.code()}"))
+                val errorJson = response.errorBody()?.string() ?: "Erro desconhecido: ${response.code()}"
+                Result.failure(Exception(errorJson))
             }
         } catch (e: Exception) {
             Result.failure(e)
