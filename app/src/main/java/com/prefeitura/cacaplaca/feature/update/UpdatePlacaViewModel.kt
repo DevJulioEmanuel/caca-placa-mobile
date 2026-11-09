@@ -41,7 +41,8 @@ class UpdatePlacaViewModel(
                 localizacao = localizacaoFormatada,
                 tipoPelicula = placa.tipoPelicula ?: "",
                 tipoSubstrato = placa.tipoSubstrato ?: "",
-                tipoSuporte = placa.tipoSuporte ?: ""
+                tipoSuporte = placa.tipoSuporte ?: "",
+                currentFotoUrl = placa.ultimoEvento?.fotoUrl
             )
         }
     }

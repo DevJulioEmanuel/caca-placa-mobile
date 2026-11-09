@@ -47,3 +47,44 @@ fun EventoPlacaResponse.toUiModel(): EventoPlacaUiModel {
         timestamp = timestamp
     )
 }
+
+fun PlacaUiModel.toResponse(): PlacaItemResponse {
+    return PlacaItemResponse(
+        id = id,
+        codigoContran = codigoContran,
+        afastamento = afastamento,
+        tipoPelicula = tipoPelicula,
+        tipoSubstrato = tipoSubstrato,
+        tipoSuporte = tipoSuporte,
+        latitude = latitude,
+        longitude = longitude,
+        createdAt = createdAt,
+        endereco = endereco?.toResponse(),
+        ultimoEvento = ultimoEvento?.toResponse()
+    )
+}
+
+fun EnderecoUiModel.toResponse(): EnderecoResponse {
+    return EnderecoResponse(
+        id = id,
+        logradouro = logradouro,
+        bairro = bairro,
+        cep = cep,
+        referencia = referencia
+    )
+}
+
+fun EventoPlacaUiModel.toResponse(): EventoPlacaResponse {
+    return EventoPlacaResponse(
+        id = id,
+        createdBy = createdBy,
+        tipoEvento = tipoEvento,
+        estadoConservacao = estadoConservacao,
+        estadoPelicula = estadoPelicula,
+        estadoSubstrato = estadoSubstrato,
+        estadoSuporte = estadoSuporte,
+        fotoUrl = fotoUrl,
+        observacao = observacao,
+        timestamp = timestamp
+    )
+}

@@ -203,7 +203,11 @@ fun MapScreen(
             PlacaDetailsBottomSheet(
                 visible = uiState.selectedPlaca != null,
                 placa = uiState.selectedPlaca,
-                onDismiss = { viewModel.clearSelectedPlaca() }
+                onDismiss = { viewModel.clearSelectedPlaca() },
+                onUpdateSuccess = {
+                    viewModel.clearSelectedPlaca()
+                    viewModel.loadPlacas()
+                }
             )
         }
     }

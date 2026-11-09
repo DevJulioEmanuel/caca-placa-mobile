@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.prefeitura.cacaplaca.feature.map.data.model.PlacaUiModel
+import com.prefeitura.cacaplaca.feature.map.data.mapper.toResponse
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaBackground
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaOrange
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaOrangeDark
@@ -70,10 +71,23 @@ private fun formatEnumText(text: String?): String {
 fun PlacaDetailsCard(
     placa: PlacaUiModel,
     onDismiss: () -> Unit,
+    onUpdateSuccess: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var isExpanded by remember(placa.id) { mutableStateOf(false) }
     var selectedTab by remember(placa.id) { mutableStateOf(0) }
+    var showUpdateDialog by remember(placa.id) { mutableStateOf(false) }
+
+    if (showUpdateDialog) {
+        com.prefeitura.cacaplaca.feature.update.ui.UpdatePlacaDialog(
+            placa = placa.toResponse(),
+            onDismiss = { showUpdateDialog = false },
+            onUpdateSuccess = {
+                showUpdateDialog = false
+                onUpdateSuccess()
+            }
+        )
+    }
 
     Column(
         modifier = modifier
@@ -328,6 +342,23 @@ fun PlacaDetailsCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = CacaPlacaTextSecondary
                 )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = { showUpdateDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = CacaPlacaOrange)
+                ) {
+                    Text(
+                        text = "Editar Informações da placa",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                        color = Color.White
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -348,23 +379,7 @@ fun PlacaDetailsCard(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
 
-                OutlinedButton(
-                    onClick = { /* New report action */ },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, CacaPlacaOrange),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = CacaPlacaOrange)
-                ) {
-                    Text(
-                        text = "Cadastrar novo relatório",
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        color = CacaPlacaOrange
-                    )
-                }
             }
             Spacer(modifier = Modifier.height(20.dp))
         } else {

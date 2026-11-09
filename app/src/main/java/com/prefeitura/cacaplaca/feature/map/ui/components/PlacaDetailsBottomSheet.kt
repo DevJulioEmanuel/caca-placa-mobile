@@ -14,7 +14,8 @@ import com.prefeitura.cacaplaca.feature.map.data.model.PlacaUiModel
 fun PlacaDetailsBottomSheet(
     visible: Boolean,
     placa: PlacaUiModel?,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onUpdateSuccess: () -> Unit
 ) {
     if (visible && placa != null) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -26,7 +27,8 @@ fun PlacaDetailsBottomSheet(
         ) {
             PlacaDetailsCard(
                 placa = placa,
-                onDismiss = onDismiss
+                onDismiss = onDismiss,
+                onUpdateSuccess = onUpdateSuccess
             )
         }
     }
