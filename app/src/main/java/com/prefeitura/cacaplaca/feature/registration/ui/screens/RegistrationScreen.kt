@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import org.koin.androidx.compose.koinViewModel
 import com.prefeitura.cacaplaca.feature.registration.ui.state.*
 import com.prefeitura.cacaplaca.feature.registration.ui.viewmodel.RegistrationViewModel
-import com.prefeitura.cacaplaca.feature.registration.ui.components.*
+import com.prefeitura.cacaplaca.ui.components.PlateSelectionContent
 
 @Composable
 fun RegistrationScreen(
@@ -34,6 +34,8 @@ fun RegistrationScreen(
 
     if (uiState.isSelectingPlate) {
         PlateSelectionContent(
+            title = "Selecionar código da placa",
+            subtitle = "Dados da placa • Etapa 2 de 2",
             modifier = modifier,
             query = uiState.plateSearchQuery,
             onQueryChanged = viewModel::onSearchQueryChanged,

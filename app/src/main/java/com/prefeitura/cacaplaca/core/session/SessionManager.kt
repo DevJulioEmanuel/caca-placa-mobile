@@ -43,9 +43,18 @@ class SessionManager(context: Context) {
         prefs.edit().clear().commit()
     }
 
+    fun saveBaseUrl(url: String) {
+        prefs.edit().putString(KEY_BASE_URL, url).commit()
+    }
+
+    fun getBaseUrl(): String? {
+        return prefs.getString(KEY_BASE_URL, null)
+    }
+
     companion object {
         private const val PREF_NAME = "cacaplaca_secure_session"
         private const val KEY_TOKEN = "jwt_token"
         private const val KEY_USER_NAME = "user_name"
+        private const val KEY_BASE_URL = "custom_base_url"
     }
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prefeitura.cacaplaca.core.session.SessionManager
 import com.prefeitura.cacaplaca.core.gps.LocationTracker
+import com.prefeitura.cacaplaca.core.model.*
 import com.prefeitura.cacaplaca.feature.registration.data.model.*
 import com.prefeitura.cacaplaca.feature.registration.data.repository.*
 import com.prefeitura.cacaplaca.feature.registration.ui.state.*
@@ -75,7 +76,7 @@ class RegistrationViewModel(
         val filtered = if (query.isBlank()) {
             allPlates
         } else {
-            allPlates.filter { it.displayLabel.contains(query, ignoreCase = true) || it.code.contains(query, ignoreCase = true) }
+            allPlates.filter { it.description.contains(query, ignoreCase = true) || it.code.contains(query, ignoreCase = true) }
         }
         _uiState.update { it.copy(plateSearchQuery = query, availablePlates = filtered) }
     }
