@@ -8,7 +8,9 @@ import com.prefeitura.cacaplaca.feature.registration.data.api.RegistrationApi
 import com.prefeitura.cacaplaca.feature.registration.data.local.dao.PlacaDao
 import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaSyncEntity
 import com.prefeitura.cacaplaca.feature.registration.data.model.CapturedPhoto
-import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaCreateData
+import com.prefeitura.cacaplaca.core.model.PlacaCreateData
+import com.prefeitura.cacaplaca.feature.registration.data.mapper.toEntity
+import com.prefeitura.cacaplaca.feature.registration.data.mapper.toItemResponse
 import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaListResponse
 import com.prefeitura.cacaplaca.feature.registration.data.worker.SyncPlacaWorker
 import kotlinx.coroutines.Dispatchers
@@ -37,16 +39,39 @@ class RegistrationRepository(
         return stringData.toRequestBody("text/plain".toMediaTypeOrNull())
     }
 
-    suspend fun listPlacas(): Result<PlacaListResponse> {
-        return try {
+    suspend fun listPlacas(): Result<PlacaListResponse> = withContext(Dispatchers.IO) {
+        try {
             val response = api.listPlacas()
             if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+                val listResponse = response.body()!!
+                val entities = listResponse.items.map { it.toEntity() }
+                placaDao.insertCachedPlacas(entities)
+                Result.success(listResponse)
             } else {
-                Result.failure(Exception(extractErrorDetail(response)))
+                loadFromCacheOrFailure(Exception(extractErrorDetail(response)))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            loadFromCacheOrFailure(e)
+        }
+    }
+
+    private suspend fun loadFromCacheOrFailure(fallbackException: Exception): Result<PlacaListResponse> {
+        return try {
+            val cachedEntities = placaDao.getCachedPlacas()
+            if (cachedEntities.isNotEmpty()) {
+                val items = cachedEntities.map { it.toItemResponse() }
+                val placaListResponse = PlacaListResponse(
+                    total = items.size,
+                    page = 1,
+                    pageSize = items.size,
+                    items = items
+                )
+                Result.success(placaListResponse)
+            } else {
+                Result.failure(fallbackException)
+            }
+        } catch (dbException: Exception) {
+            Result.failure(fallbackException)
         }
     }
 
@@ -80,6 +105,14 @@ class RegistrationRepository(
 
             if (response.isSuccessful) {
                 if (file.exists()) file.delete()
+                // Refresh cache from API after successful submission
+                try {
+                    val listResponse = api.listPlacas()
+                    if (listResponse.isSuccessful && listResponse.body() != null) {
+                        placaDao.insertCachedPlacas(listResponse.body()!!.items.map { it.toEntity() })
+                    }
+                } catch (_: Exception) {}
+
                 Result.success(SubmissionStatus.SENT_TO_API)
             } else {
                 val errorMsg = extractErrorDetail(response)

@@ -1,11 +1,12 @@
-package com.prefeitura.cacaplaca.feature.map
+package com.prefeitura.cacaplaca.feature.map.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prefeitura.cacaplaca.core.gps.LocationRepository
 import com.prefeitura.cacaplaca.core.network.NetworkTracker
-import com.prefeitura.cacaplaca.feature.map.data.MapUiState
-import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaItemResponse
+import com.prefeitura.cacaplaca.feature.map.data.mapper.toUiModel
+import com.prefeitura.cacaplaca.feature.map.data.model.PlacaUiModel
+import com.prefeitura.cacaplaca.feature.map.ui.state.MapUiState
 import com.prefeitura.cacaplaca.feature.registration.data.repository.RegistrationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -45,7 +46,7 @@ class MapViewModel(
         _uiState.update { it.copy(isOfflineBannerVisible = false) }
     }
 
-    fun selectPlaca(placa: PlacaItemResponse?) {
+    fun selectPlaca(placa: PlacaUiModel?) {
         _uiState.update { it.copy(selectedPlaca = placa) }
     }
 
@@ -57,7 +58,7 @@ class MapViewModel(
         viewModelScope.launch {
             registrationRepository.listPlacas().onSuccess { response ->
                 _uiState.update { state ->
-                    state.copy(placas = response.items)
+                    state.copy(placas = response.items.map { it.toUiModel() })
                 }
             }.onFailure {
                 // Ignore or handle error

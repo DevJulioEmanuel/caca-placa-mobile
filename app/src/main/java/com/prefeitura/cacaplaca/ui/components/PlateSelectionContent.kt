@@ -1,4 +1,4 @@
-package com.prefeitura.cacaplaca.feature.registration.ui.components
+package com.prefeitura.cacaplaca.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -15,12 +15,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.prefeitura.cacaplaca.feature.registration.data.model.PlateTypeOption
+import com.prefeitura.cacaplaca.core.model.PlateTypeOption
+import com.prefeitura.cacaplaca.feature.registration.ui.components.RegistrationTopBar
 import com.prefeitura.cacaplaca.ui.theme.*
 
 @Composable
 fun PlateSelectionContent(
+    title: String,
+    subtitle: String,
     query: String,
     onQueryChanged: (String) -> Unit,
     availablePlates: List<PlateTypeOption>,
@@ -41,8 +43,8 @@ fun PlateSelectionContent(
             .background(CacaPlacaBackground)
     ) {
         RegistrationTopBar(
-            title = "Selecionar código da placa",
-            subtitle = "Dados da placa • Etapa 2 de 2",
+            title = title,
+            subtitle = subtitle,
             onBackClick = onBackClick
         )
 
@@ -124,7 +126,7 @@ fun PlateSelectionContent(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Column {
+                                    Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = plate.code,
                                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.ExtraBold),
@@ -172,7 +174,8 @@ fun PlateSelectionContent(
             ) {
                 Text(
                     text = "Usar tipo selecionado",
-                    style = MaterialTheme.typography.labelLarge
+                    style = MaterialTheme.typography.labelLarge,
+                    color = androidx.compose.ui.graphics.Color.White
                 )
             }
         }

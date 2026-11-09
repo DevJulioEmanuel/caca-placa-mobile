@@ -17,10 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.prefeitura.cacaplaca.feature.registration.data.model.EstadoConservacao
-import com.prefeitura.cacaplaca.feature.registration.data.model.TipoPelicula
-import com.prefeitura.cacaplaca.feature.registration.data.model.TipoSubstrato
-import com.prefeitura.cacaplaca.feature.registration.data.model.TipoSuporte
+import com.prefeitura.cacaplaca.core.model.EstadoConservacao
+import com.prefeitura.cacaplaca.core.model.TipoPelicula
+import com.prefeitura.cacaplaca.core.model.TipoSubstrato
+import com.prefeitura.cacaplaca.core.model.TipoSuporte
 import com.prefeitura.cacaplaca.feature.registration.ui.components.*
 import com.prefeitura.cacaplaca.feature.registration.ui.state.*
 import com.prefeitura.cacaplaca.ui.theme.*

@@ -11,16 +11,21 @@ import com.prefeitura.cacaplaca.core.session.SessionManager
 import com.prefeitura.cacaplaca.feature.auth.AuthViewModel
 import com.prefeitura.cacaplaca.feature.auth.data.AuthRepository
 import com.prefeitura.cacaplaca.feature.home.ui.HomeViewModel
-import com.prefeitura.cacaplaca.feature.map.MapViewModel
+import com.prefeitura.cacaplaca.feature.map.ui.viewmodel.MapViewModel
 import com.prefeitura.cacaplaca.feature.registration.data.local.AppDatabase
 import com.prefeitura.cacaplaca.feature.registration.data.repository.RegistrationRepository
 import com.prefeitura.cacaplaca.feature.registration.data.worker.SyncPlacaWorker
 import com.prefeitura.cacaplaca.feature.registration.ui.viewmodel.RegistrationViewModel
+import com.prefeitura.cacaplaca.feature.update.UpdatePlacaViewModel
+import com.prefeitura.cacaplaca.feature.update.data.api.UpdatePlacaApi
+import com.prefeitura.cacaplaca.feature.update.data.repository.UpdatePlacaRepository
+import com.prefeitura.cacaplaca.feature.update.data.repository.UpdatePlacaRepositoryImpl
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.workmanager.dsl.workerOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
+import retrofit2.Retrofit
 
 val databaseModule = module {
     single {
@@ -50,4 +55,7 @@ val appModule = module {
     viewModelOf(::AuthViewModel)
     singleOf(::RegistrationRepository)
     viewModelOf(::RegistrationViewModel)
+    single<UpdatePlacaApi> { get<Retrofit>().create(UpdatePlacaApi::class.java) }
+    single<UpdatePlacaRepository> { UpdatePlacaRepositoryImpl(get()) }
+    viewModelOf(::UpdatePlacaViewModel)
 }
