@@ -97,8 +97,9 @@ class UpdatePlacaViewModel(
                 foto = imageFile
             )
 
-            result.onSuccess {
-                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+            result.onSuccess { status ->
+                val savedOffline = status == com.prefeitura.cacaplaca.feature.registration.data.repository.SubmissionStatus.SAVED_LOCALLY
+                _uiState.update { it.copy(isLoading = false, isSuccess = true, savedOffline = savedOffline) }
             }.onFailure { error ->
                 _uiState.update { it.copy(isLoading = false, errorMessage = error.message) }
             }

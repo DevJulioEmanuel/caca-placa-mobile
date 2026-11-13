@@ -13,5 +13,6 @@ data class UpdatePlacaUiState(
     val tipoPelicula: String = "",
     val tipoSubstrato: String = "",
     val tipoSuporte: String = "",
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val savedOffline: Boolean = false
 )
