@@ -84,7 +84,6 @@ class RegistrationRepository(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
             } else {
-                // Fallback offline: return cached ultimo evento
                 val fallback = cachedUltimoEvento?.let { listOf(it) } ?: emptyList()
                 Result.success(fallback)
             }
@@ -138,7 +137,6 @@ class RegistrationRepository(
         try {
             val response = api.deleteEventoPlaca(placaId, eventoId)
             if (response.isSuccessful) {
-                // Refresh cache/list after successful delete
                 try {
                     val listResponse = api.listPlacas()
                     if (listResponse.isSuccessful && listResponse.body() != null) {
