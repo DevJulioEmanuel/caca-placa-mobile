@@ -12,6 +12,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -171,81 +172,88 @@ fun CacaPlacaMapView(
         }
     }
 
+    val currentPlacas by rememberUpdatedState(placas)
+    val currentOnPlacaSelected by rememberUpdatedState(onPlacaSelected)
+
     AndroidView(
         modifier = modifier,
-        factory = { mapView },
-        update = { view ->
-            view.getMapAsync { mapboxMap ->
-                mapLibreMapRef = mapboxMap
-                onMapReady(mapboxMap)
+        factory = {
+            mapView.apply {
+                getMapAsync { mapboxMap ->
+                    mapLibreMapRef = mapboxMap
+                    onMapReady(mapboxMap)
 
-                mapboxMap.setStyle(
-                    Style.Builder().fromUri(
-                        "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
-                    )
-                ) { style ->
-                    val quixada = LatLng(-4.9704, -39.0163)
-
-                    mapboxMap.cameraPosition = CameraPosition.Builder()
-                        .target(quixada)
-                        .zoom(14.0)
-                        .build()
-
-                    val redBitmap = getBitmapFromDrawable(context, R.drawable.red)
-                    val yellowBitmap = getBitmapFromDrawable(context, R.drawable.yellow)
-                    val clusterBitmap = getBitmapFromDrawable(context, R.drawable.cluster)
-                    if (redBitmap != null) style.addImage("icon_red", redBitmap)
-                    if (yellowBitmap != null) style.addImage("icon_yellow", yellowBitmap)
-                    if (clusterBitmap != null) style.addImage("icon_cluster", clusterBitmap)
-
-                    val symbolManager = SymbolManager(mapView, mapboxMap, style).apply {
-                        iconAllowOverlap = true
-                        textAllowOverlap = true
-                    }
-                    symbolManagerRef = symbolManager
-
-                    symbolManager.addClickListener { symbol ->
-                        val placa = symbolToPlacaMap[symbol.id]
-                        if (placa != null) {
-                            onPlacaSelected(placa)
-                            true
-                        } else {
-                            val latLng = symbol.latLng
-                            if (latLng != null) {
-                                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, mapboxMap.cameraPosition.zoom + 2))
-                            }
-                            true
-                        }
-                    }
-
-                    mapboxMap.addOnCameraIdleListener {
-                        updateMarkersAndClusters(mapboxMap, symbolManager, placas, symbolToPlacaMap)
-                    }
-
-                    val hasFineLocation = ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ) == PackageManager.PERMISSION_GRANTED
-
-                    val hasCoarseLocation = ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ) == PackageManager.PERMISSION_GRANTED
-
-                    if (hasFineLocation || hasCoarseLocation) {
-                        val locationComponent = mapboxMap.locationComponent
-                        locationComponent.activateLocationComponent(
-                            LocationComponentActivationOptions.builder(
-                                context,
-                                style
-                            ).build()
+                    mapboxMap.setStyle(
+                        Style.Builder().fromUri(
+                            "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
                         )
-                        locationComponent.isLocationComponentEnabled = true
-                        locationComponent.cameraMode = CameraMode.NONE
-                        locationComponent.renderMode = RenderMode.NORMAL
+                    ) { style ->
+                        val quixada = LatLng(-4.9704, -39.0163)
+
+                        mapboxMap.cameraPosition = CameraPosition.Builder()
+                            .target(quixada)
+                            .zoom(14.0)
+                            .build()
+
+                        val redBitmap = getBitmapFromDrawable(context, R.drawable.red)
+                        val yellowBitmap = getBitmapFromDrawable(context, R.drawable.yellow)
+                        val clusterBitmap = getBitmapFromDrawable(context, R.drawable.cluster)
+                        if (redBitmap != null) style.addImage("icon_red", redBitmap)
+                        if (yellowBitmap != null) style.addImage("icon_yellow", yellowBitmap)
+                        if (clusterBitmap != null) style.addImage("icon_cluster", clusterBitmap)
+
+                        val symbolManager = SymbolManager(this, mapboxMap, style).apply {
+                            iconAllowOverlap = true
+                            textAllowOverlap = true
+                        }
+                        symbolManagerRef = symbolManager
+
+                        symbolManager.addClickListener { symbol ->
+                            val placa = symbolToPlacaMap[symbol.id]
+                            if (placa != null) {
+                                currentOnPlacaSelected(placa)
+                                true
+                            } else {
+                                val latLng = symbol.latLng
+                                if (latLng != null) {
+                                    mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, mapboxMap.cameraPosition.zoom + 2))
+                                }
+                                true
+                            }
+                        }
+
+                        mapboxMap.addOnCameraIdleListener {
+                            updateMarkersAndClusters(mapboxMap, symbolManager, currentPlacas, symbolToPlacaMap)
+                        }
+
+                        val hasFineLocation = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+
+                        val hasCoarseLocation = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+
+                        if (hasFineLocation || hasCoarseLocation) {
+                            val locationComponent = mapboxMap.locationComponent
+                            locationComponent.activateLocationComponent(
+                                LocationComponentActivationOptions.builder(
+                                    context,
+                                    style
+                                ).build()
+                            )
+                            locationComponent.isLocationComponentEnabled = true
+                            locationComponent.cameraMode = CameraMode.NONE
+                            locationComponent.renderMode = RenderMode.NORMAL
+                        }
                     }
                 }
             }
+        },
+        update = {
+            // Nothing here to avoid recreating the map!
         }
     )
 

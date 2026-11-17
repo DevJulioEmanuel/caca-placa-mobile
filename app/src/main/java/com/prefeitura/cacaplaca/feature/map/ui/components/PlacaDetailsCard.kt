@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.prefeitura.cacaplaca.feature.map.data.model.EventoPlacaUiModel
 import com.prefeitura.cacaplaca.feature.map.data.model.PlacaUiModel
+import com.prefeitura.cacaplaca.feature.map.data.mapper.toResponse
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaBackground
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaOrange
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaOrangeDark
@@ -564,6 +565,24 @@ fun PlacaDetailsCard(
                 }
             }
 
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = { showUpdateDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = CacaPlacaOrange)
+                ) {
+                    Text(
+                        text = "Editar Informações da placa",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                        color = Color.White
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(20.dp))
 
             if (!isExpanded) {
@@ -582,23 +601,7 @@ fun PlacaDetailsCard(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
 
-                OutlinedButton(
-                    onClick = { /* New report action */ },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, CacaPlacaOrange),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = CacaPlacaOrange)
-                ) {
-                    Text(
-                        text = "Cadastrar novo relatório",
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        color = CacaPlacaOrange
-                    )
-                }
             }
             Spacer(modifier = Modifier.height(20.dp))
         } else {

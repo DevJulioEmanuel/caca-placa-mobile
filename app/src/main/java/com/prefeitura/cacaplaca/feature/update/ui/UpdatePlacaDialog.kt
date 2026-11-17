@@ -152,6 +152,7 @@ fun UpdatePlacaDialog(
 
                         PhotoSection(
                             photoUri = uiState.photoUri,
+                            currentFotoUrl = uiState.currentFotoUrl,
                             onPhotoSelected = viewModel::onPhotoSelected
                         )
 
@@ -273,6 +274,7 @@ fun UpdatePlacaDialog(
 @Composable
 private fun PhotoSection(
     photoUri: Uri?,
+    currentFotoUrl: String?,
     onPhotoSelected: (Uri?) -> Unit
 ) {
     val launcher = rememberLauncherForActivityResult(
@@ -295,12 +297,19 @@ private fun PhotoSection(
                 .clip(RoundedCornerShape(12.dp))
                 .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp))
                 .clickable { launchGallery() }
-                .padding(if (photoUri == null) 16.dp else 0.dp),
+                .padding(if (photoUri == null && currentFotoUrl == null) 16.dp else 0.dp),
             contentAlignment = Alignment.Center
         ) {
             if (photoUri != null) {
                 AsyncImage(
                     model = photoUri,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else if (currentFotoUrl != null) {
+                AsyncImage(
+                    model = currentFotoUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()

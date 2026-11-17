@@ -9,6 +9,7 @@ data class UpdatePlacaUiState(
     val codigoPlaca: String = "",
     val localizacao: String = "",
     val photoUri: Uri? = null,
+    val currentFotoUrl: String? = null,
     val tipoPelicula: String = "",
     val tipoSubstrato: String = "",
     val tipoSuporte: String = "",
