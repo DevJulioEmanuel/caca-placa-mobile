@@ -7,6 +7,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.prefeitura.cacaplaca.feature.map.data.model.EventoPlacaUiModel
 import com.prefeitura.cacaplaca.feature.map.data.model.PlacaUiModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -14,7 +15,10 @@ import com.prefeitura.cacaplaca.feature.map.data.model.PlacaUiModel
 fun PlacaDetailsBottomSheet(
     visible: Boolean,
     placa: PlacaUiModel?,
-    onDismiss: () -> Unit
+    events: List<EventoPlacaUiModel>,
+    onDismiss: () -> Unit,
+    onDeleteClick: (String) -> Unit,
+    onDeleteEventoClick: (String, String) -> Unit
 ) {
     if (visible && placa != null) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -26,7 +30,12 @@ fun PlacaDetailsBottomSheet(
         ) {
             PlacaDetailsCard(
                 placa = placa,
-                onDismiss = onDismiss
+                events = events,
+                onDismiss = onDismiss,
+                onDeleteClick = {
+                    placa.id?.let { onDeleteClick(it) }
+                },
+                onDeleteEventoClick = onDeleteEventoClick
             )
         }
     }
