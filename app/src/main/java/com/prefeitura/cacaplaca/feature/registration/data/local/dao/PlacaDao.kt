@@ -5,6 +5,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.prefeitura.cacaplaca.feature.registration.data.local.entity.CachedPlacaEntity
+import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaDeleteSyncEntity
+import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaEventDeleteSyncEntity
 import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaSyncEntity
 
 @Dao
@@ -26,4 +28,25 @@ interface PlacaDao {
 
     @Query("DELETE FROM cached_placas")
     suspend fun clearCachedPlacas()
+
+    @Query("DELETE FROM cached_placas WHERE id = :placaId")
+    suspend fun deleteCachedPlaca(placaId: String)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPlacaDeleteSync(entity: PlacaDeleteSyncEntity)
+
+    @Query("SELECT * FROM placas_delete_sync ORDER BY createdAt ASC")
+    suspend fun getPendingDeletions(): List<PlacaDeleteSyncEntity>
+
+    @Query("DELETE FROM placas_delete_sync WHERE id = :id")
+    suspend fun deletePlacaDeleteSync(id: Int)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPlacaEventDeleteSync(entity: PlacaEventDeleteSyncEntity)
+
+    @Query("SELECT * FROM placas_event_delete_sync ORDER BY createdAt ASC")
+    suspend fun getPendingEventDeletions(): List<PlacaEventDeleteSyncEntity>
+
+    @Query("DELETE FROM placas_event_delete_sync WHERE id = :id")
+    suspend fun deletePlacaEventDeleteSync(id: Int)
 }

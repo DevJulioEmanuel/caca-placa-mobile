@@ -21,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.prefeitura.cacaplaca.feature.map.data.model.EventoPlacaUiModel
 import com.prefeitura.cacaplaca.feature.map.data.model.PlacaUiModel
 import com.prefeitura.cacaplaca.feature.map.data.mapper.toResponse
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaBackground
@@ -51,6 +53,7 @@ import com.prefeitura.cacaplaca.ui.theme.CacaPlacaOrangeDark
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaOrangeLight
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaTextPrimary
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaTextSecondary
+import com.prefeitura.cacaplaca.ui.theme.OutlineGray
 import java.util.Locale
 
 private fun getPlateDescription(code: String): String {
@@ -70,22 +73,222 @@ private fun formatEnumText(text: String?): String {
 @Composable
 fun PlacaDetailsCard(
     placa: PlacaUiModel,
+    events: List<EventoPlacaUiModel>,
     onDismiss: () -> Unit,
-    onUpdateSuccess: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onDeleteEventoClick: (String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var isExpanded by remember(placa.id) { mutableStateOf(false) }
     var selectedTab by remember(placa.id) { mutableStateOf(0) }
-    var showUpdateDialog by remember(placa.id) { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var eventoToDelete by remember { mutableStateOf<EventoPlacaUiModel?>(null) }
 
-    if (showUpdateDialog) {
-        com.prefeitura.cacaplaca.feature.update.ui.UpdatePlacaDialog(
-            placa = placa.toResponse(),
-            onDismiss = { showUpdateDialog = false },
-            onUpdateSuccess = {
-                showUpdateDialog = false
-                onUpdateSuccess()
-            }
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(24.dp),
+            title = {
+                Text(
+                    text = "Excluir esta placa?",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, fontSize = 20.sp),
+                    color = CacaPlacaTextPrimary
+                )
+            },
+            text = {
+                Column {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        color = CacaPlacaBackground,
+                        border = BorderStroke(1.dp, OutlineGray.copy(alpha = 0.5f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color.LightGray)
+                            ) {
+                                val fotoUrl = placa.ultimoEvento?.fotoUrl
+                                if (!fotoUrl.isNullOrEmpty()) {
+                                    AsyncImage(
+                                        model = fotoUrl,
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.LocationOn,
+                                        contentDescription = null,
+                                        tint = CacaPlacaTextSecondary,
+                                        modifier = Modifier.align(Alignment.Center)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "${placa.codigoContran} • ${placa.id?.take(8)?.uppercase() ?: "---"}",
+                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                                    color = CacaPlacaTextPrimary
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = getPlateDescription(placa.codigoContran),
+                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                                    color = CacaPlacaTextPrimary
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                val logradouro = placa.endereco?.logradouro ?: "Rua não informada"
+                                val bairro = placa.endereco?.bairro ?: "Quixadá, CE"
+                                Text(
+                                    text = "$logradouro, $bairro",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = CacaPlacaTextSecondary,
+                                    maxLines = 2
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Essa ação não pode ser desfeita.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = CacaPlacaTextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Button(
+                        onClick = {
+                            showDeleteDialog = false
+                            onDeleteClick()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+                    ) {
+                        Text(
+                            text = "Excluir placa",
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                            color = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    OutlinedButton(
+                        onClick = { showDeleteDialog = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, OutlineGray),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = CacaPlacaTextPrimary)
+                    ) {
+                        Text(
+                            text = "Cancelar",
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                            color = CacaPlacaTextPrimary
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {}
+        )
+    }
+
+    if (eventoToDelete != null) {
+        val ev = eventoToDelete!!
+        AlertDialog(
+            onDismissRequest = { eventoToDelete = null },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(24.dp),
+            title = {
+                Text(
+                    text = "Excluir este evento?",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, fontSize = 20.sp),
+                    color = CacaPlacaTextPrimary
+                )
+            },
+            text = {
+                Column {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        color = CacaPlacaBackground,
+                        border = BorderStroke(1.dp, OutlineGray.copy(alpha = 0.5f))
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                text = "${formatEnumText(ev.tipoEvento)} • ${formatEnumText(ev.estadoConservacao)}",
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                                color = CacaPlacaTextPrimary
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            val ts = ev.timestamp?.take(10)?.split("-")?.reversed()?.joinToString("/") ?: "N/A"
+                            Text(
+                                text = "Data: $ts",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = CacaPlacaTextSecondary
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Essa ação não pode ser desfeita.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = CacaPlacaTextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Button(
+                        onClick = {
+                            val evId = ev.id
+                            val placaId = placa.id
+                            eventoToDelete = null
+                            if (placaId != null && evId != null) {
+                                onDeleteEventoClick(placaId, evId)
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+                    ) {
+                        Text(
+                            text = "Excluir evento",
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                            color = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    OutlinedButton(
+                        onClick = { eventoToDelete = null },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, OutlineGray),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = CacaPlacaTextPrimary)
+                    ) {
+                        Text(
+                            text = "Cancelar",
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                            color = CacaPlacaTextPrimary
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {}
         )
     }
 
@@ -345,6 +548,25 @@ fun PlacaDetailsCard(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                OutlinedButton(
+                    onClick = { showDeleteDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Color(0xFFD32F2F)),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD32F2F))
+                ) {
+                    Text(
+                        text = "Excluir placa",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                        color = Color(0xFFD32F2F)
+                    )
+                }
+            }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
                 Button(
                     onClick = { showUpdateDialog = true },
                     modifier = Modifier
@@ -390,30 +612,83 @@ fun PlacaDetailsCard(
                 color = CacaPlacaTextPrimary
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                color = CacaPlacaBackground
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+
+            if (events.isEmpty()) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    color = CacaPlacaBackground
+                ) {
                     Text(
-                        text = placa.ultimoEvento?.tipoEvento ?: "Criação",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                        color = CacaPlacaTextPrimary
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    val ts = placa.ultimoEvento?.timestamp?.take(10)?.split("-")?.reversed()?.joinToString("/") ?: placa.createdAt?.take(10) ?: ""
-                    Text(
-                        text = "Data: $ts",
+                        text = "Nenhum evento registrado.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = CacaPlacaTextSecondary
+                        color = CacaPlacaTextSecondary,
+                        modifier = Modifier.padding(16.dp)
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Estado: ${placa.ultimoEvento?.estadoConservacao ?: "N/A"}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = CacaPlacaTextSecondary
-                    )
+                }
+            } else {
+                events.forEachIndexed { index, evento ->
+                    val isLatest = index == 0 || evento.id == placa.ultimoEvento?.id
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = CacaPlacaBackground
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = formatEnumText(evento.tipoEvento),
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = CacaPlacaTextPrimary
+                                )
+                                val ts = evento.timestamp?.take(10)?.split("-")?.reversed()?.joinToString("/") ?: "N/A"
+                                Text(
+                                    text = ts,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = CacaPlacaTextSecondary
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "Conservação geral: ${formatEnumText(evento.estadoConservacao)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = CacaPlacaTextSecondary
+                            )
+                            if (!evento.observacao.isNullOrEmpty()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Obs: ${evento.observacao}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = CacaPlacaTextSecondary
+                                )
+                            }
+
+                            if (isLatest && evento.id != null) {
+                                Spacer(modifier = Modifier.height(12.dp))
+                                OutlinedButton(
+                                    onClick = { eventoToDelete = evento },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(40.dp),
+                                    shape = RoundedCornerShape(8.dp),
+                                    border = BorderStroke(1.dp, Color(0xFFD32F2F)),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD32F2F))
+                                ) {
+                                    Text(
+                                        text = "Excluir último histórico",
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                        color = Color(0xFFD32F2F)
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(40.dp))

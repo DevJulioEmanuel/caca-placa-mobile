@@ -1,5 +1,6 @@
 package com.prefeitura.cacaplaca.feature.map.ui.state
 
+import com.prefeitura.cacaplaca.feature.map.data.model.EventoPlacaUiModel
 import com.prefeitura.cacaplaca.feature.map.data.model.PlacaUiModel
 
 data class MapUiState(
@@ -9,5 +10,6 @@ data class MapUiState(
     val isOffline: Boolean = false,
     val isOfflineBannerVisible: Boolean = true,
     val placas: List<PlacaUiModel> = emptyList(),
-    val selectedPlaca: PlacaUiModel? = null
+    val selectedPlaca: PlacaUiModel? = null,
+    val selectedPlacaEvents: List<EventoPlacaUiModel> = emptyList()
 )

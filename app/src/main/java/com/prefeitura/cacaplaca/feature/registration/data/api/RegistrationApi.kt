@@ -1,14 +1,17 @@
 package com.prefeitura.cacaplaca.feature.registration.data.api
 
+import com.prefeitura.cacaplaca.feature.registration.data.model.EventoPlacaResponse
 import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaListResponse
 import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.Path
 
 interface RegistrationApi {
     @Multipart
@@ -35,4 +38,16 @@ interface RegistrationApi {
 
     @GET("placas/")
     suspend fun listPlacas(): Response<PlacaListResponse>
+
+    @DELETE("placas/{placa_id}")
+    suspend fun deletePlaca(@Path("placa_id") placaId: String): Response<Unit>
+
+    @GET("placas/{placa_id}/eventos")
+    suspend fun listEventosPlaca(@Path("placa_id") placaId: String): Response<List<EventoPlacaResponse>>
+
+    @DELETE("placas/{placa_id}/{evento_id}")
+    suspend fun deleteEventoPlaca(
+        @Path("placa_id") placaId: String,
+        @Path("evento_id") eventoId: String
+    ): Response<Unit>
 }
