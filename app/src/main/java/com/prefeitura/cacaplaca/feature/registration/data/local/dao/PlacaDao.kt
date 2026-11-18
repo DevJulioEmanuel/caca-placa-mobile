@@ -8,6 +8,7 @@ import com.prefeitura.cacaplaca.feature.registration.data.local.entity.CachedPla
 import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaDeleteSyncEntity
 import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaEventDeleteSyncEntity
 import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaSyncEntity
+import com.prefeitura.cacaplaca.feature.update.data.local.entity.PlacaUpdateSyncEntity
 
 @Dao
 interface PlacaDao {
@@ -19,6 +20,15 @@ interface PlacaDao {
 
     @Query("DELETE FROM placas_sync WHERE id = :id")
     suspend fun deletePlacaSync(id: Int)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPlacaUpdateSync(placa: PlacaUpdateSyncEntity)
+
+    @Query("SELECT * FROM placas_update_sync ORDER BY createdAt ASC")
+    suspend fun getPendingUpdatePlacas(): List<PlacaUpdateSyncEntity>
+
+    @Query("DELETE FROM placas_update_sync WHERE id = :id")
+    suspend fun deletePlacaUpdateSync(id: Int)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCachedPlacas(placas: List<CachedPlacaEntity>)

@@ -7,6 +7,7 @@ import com.prefeitura.cacaplaca.feature.registration.data.local.entity.CachedPla
 import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaDeleteSyncEntity
 import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaEventDeleteSyncEntity
 import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaSyncEntity
+import com.prefeitura.cacaplaca.feature.update.data.local.entity.PlacaUpdateSyncEntity
 
 @Database(
     entities = [

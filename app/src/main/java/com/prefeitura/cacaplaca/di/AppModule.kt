@@ -23,6 +23,7 @@ import com.prefeitura.cacaplaca.feature.update.data.repository.UpdatePlacaReposi
 import com.prefeitura.cacaplaca.feature.profile.data.api.ProfileApi
 import com.prefeitura.cacaplaca.feature.profile.data.repository.ProfileRepository
 import com.prefeitura.cacaplaca.feature.profile.ui.viewmodel.ProfileViewModel
+import com.prefeitura.cacaplaca.feature.update.data.worker.SyncUpdatePlacaWorker
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.workmanager.dsl.workerOf
 import org.koin.core.module.dsl.singleOf
@@ -44,6 +45,7 @@ val databaseModule = module {
 val workerModule = module {
     single { WorkManager.getInstance(androidContext()) }
     workerOf(::SyncPlacaWorker)
+    workerOf(::SyncUpdatePlacaWorker)
 }
 
 val appModule = module {
@@ -59,7 +61,7 @@ val appModule = module {
     singleOf(::RegistrationRepository)
     viewModelOf(::RegistrationViewModel)
     single<UpdatePlacaApi> { get<Retrofit>().create(UpdatePlacaApi::class.java) }
-    single<UpdatePlacaRepository> { UpdatePlacaRepositoryImpl(get()) }
+    single<UpdatePlacaRepository> { UpdatePlacaRepositoryImpl(get(), get(), get()) }
     viewModelOf(::UpdatePlacaViewModel)
     single<ProfileApi> { get<Retrofit>().create(ProfileApi::class.java) }
     singleOf(::ProfileRepository)

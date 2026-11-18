@@ -71,6 +71,7 @@ fun UpdatePlacaDialog(
     if (uiState.isSuccess) {
         SuccessDialog(
             codigoPlaca = uiState.codigoPlaca,
+            isOffline = uiState.savedOffline,
             onReturn = {
                 viewModel.resetState()
                 onUpdateSuccess()
@@ -406,7 +407,7 @@ private fun DropdownField(
 }
 
 @Composable
-private fun SuccessDialog(codigoPlaca: String, onReturn: () -> Unit) {
+private fun SuccessDialog(codigoPlaca: String, isOffline: Boolean, onReturn: () -> Unit) {
     Dialog(onDismissRequest = onReturn) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -420,13 +421,16 @@ private fun SuccessDialog(codigoPlaca: String, onReturn: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .size(64.dp)
-                        .background(Color(0xFFE8F5E9), RoundedCornerShape(32.dp)),
+                        .background(
+                            if (isOffline) Color(0xFFFFF3E0) else Color(0xFFE8F5E9),
+                            RoundedCornerShape(32.dp)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = null,
-                        tint = Color(0xFF4CAF50),
+                        tint = if (isOffline) Color(0xFFFF9800) else Color(0xFF4CAF50),
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -434,7 +438,7 @@ private fun SuccessDialog(codigoPlaca: String, onReturn: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Alterações Salvas!",
+                    text = if (isOffline) "Salvo Offline!" else "Alterações Salvas!",
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                     color = CacaPlacaNavy
@@ -443,7 +447,10 @@ private fun SuccessDialog(codigoPlaca: String, onReturn: () -> Unit) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Os dados da placa $codigoPlaca foram salvos e já estão disponíveis para visualização.",
+                    text = if (isOffline)
+                        "Sem conexão com a internet. A atualização da placa $codigoPlaca foi salva e será enviada automaticamente quando houver rede."
+                    else
+                        "Os dados da placa $codigoPlaca foram salvos e já estão disponíveis para visualização.",
                     textAlign = TextAlign.Center,
                     color = Color.Gray,
                     fontSize = 14.sp
