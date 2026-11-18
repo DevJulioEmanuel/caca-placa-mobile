@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.prefeitura.cacaplaca.feature.map.data.model.EventoPlacaUiModel
 import com.prefeitura.cacaplaca.feature.map.data.model.PlacaUiModel
+import com.prefeitura.cacaplaca.core.session.SessionManager
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaBackground
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaOrange
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaOrangeDark
@@ -53,7 +54,21 @@ import com.prefeitura.cacaplaca.ui.theme.CacaPlacaOrangeLight
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaTextPrimary
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaTextSecondary
 import com.prefeitura.cacaplaca.ui.theme.OutlineGray
+import org.koin.compose.koinInject
 import java.util.Locale
+
+private fun formatPhotoUrl(fotoUrl: String?, sessionManager: SessionManager): String? {
+    if (fotoUrl.isNullOrBlank()) return null
+    if (fotoUrl.startsWith("http://") || fotoUrl.startsWith("https://") || fotoUrl.startsWith("file://") || fotoUrl.startsWith("content://")) {
+        return fotoUrl
+    }
+    val baseUrl = sessionManager.getBaseUrl()?.let {
+        if (!it.startsWith("http://") && !it.startsWith("https://")) "http://$it" else it
+    } ?: "http://192.168.18.252:8000"
+    val cleanBaseUrl = if (baseUrl.endsWith("/")) baseUrl.dropLast(1) else baseUrl
+    val cleanPath = if (fotoUrl.startsWith("/")) fotoUrl else "/$fotoUrl"
+    return "$cleanBaseUrl$cleanPath"
+}
 
 private fun getPlateDescription(code: String): String {
     return when (code.uppercase()) {
@@ -76,7 +91,8 @@ fun PlacaDetailsCard(
     onDismiss: () -> Unit,
     onDeleteClick: () -> Unit,
     onDeleteEventoClick: (String, String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    sessionManager: SessionManager = koinInject()
 ) {
     var isExpanded by remember(placa.id) { mutableStateOf(false) }
     var selectedTab by remember(placa.id) { mutableStateOf(0) }
@@ -113,7 +129,7 @@ fun PlacaDetailsCard(
                                     .clip(RoundedCornerShape(8.dp))
                                     .background(Color.LightGray)
                             ) {
-                                val fotoUrl = placa.ultimoEvento?.fotoUrl
+                                val fotoUrl = formatPhotoUrl(placa.ultimoEvento?.fotoUrl, sessionManager)
                                 if (!fotoUrl.isNullOrEmpty()) {
                                     AsyncImage(
                                         model = fotoUrl,
@@ -385,7 +401,7 @@ fun PlacaDetailsCard(
                         .clip(RoundedCornerShape(12.dp))
                         .background(CacaPlacaBackground)
                 ) {
-                    val fotoUrl = placa.ultimoEvento?.fotoUrl
+                    val fotoUrl = formatPhotoUrl(placa.ultimoEvento?.fotoUrl, sessionManager)
                     if (!fotoUrl.isNullOrEmpty()) {
                         AsyncImage(
                             model = fotoUrl,

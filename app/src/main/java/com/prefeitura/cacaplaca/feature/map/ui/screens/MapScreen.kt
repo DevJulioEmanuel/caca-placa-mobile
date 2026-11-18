@@ -73,6 +73,7 @@ fun MapScreen(
     var mapLibreMapRef by remember { mutableStateOf<MapLibreMap?>(null) }
 
     LaunchedEffect(Unit) {
+        viewModel.loadPlacas()
         MapOfflineManager.verificarEBaixarMapaOffline(context)
         val hasFinePermission = ActivityCompat.checkSelfPermission(
             context, Manifest.permission.ACCESS_FINE_LOCATION

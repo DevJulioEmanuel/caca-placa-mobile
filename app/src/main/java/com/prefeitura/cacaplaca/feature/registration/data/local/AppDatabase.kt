@@ -14,7 +14,8 @@ import com.prefeitura.cacaplaca.feature.update.data.local.entity.PlacaUpdateSync
         PlacaSyncEntity::class,
         CachedPlacaEntity::class,
         PlacaDeleteSyncEntity::class,
-        PlacaEventDeleteSyncEntity::class
+        PlacaEventDeleteSyncEntity::class,
+        PlacaUpdateSyncEntity::class
     ],
     version = 4,
     exportSchema = false

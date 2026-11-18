@@ -222,6 +222,8 @@ fun CacaPlacaMapView(
                             }
                         }
 
+                        updateMarkersAndClusters(mapboxMap, symbolManager, currentPlacas, symbolToPlacaMap)
+
                         mapboxMap.addOnCameraIdleListener {
                             updateMarkersAndClusters(mapboxMap, symbolManager, currentPlacas, symbolToPlacaMap)
                         }
@@ -264,7 +266,7 @@ fun CacaPlacaMapView(
         }
     }
 
-    LaunchedEffect(placas, symbolManagerRef) {
+    LaunchedEffect(placas, symbolManagerRef, mapLibreMapRef) {
         val map = mapLibreMapRef
         val manager = symbolManagerRef
         if (map != null && manager != null) {

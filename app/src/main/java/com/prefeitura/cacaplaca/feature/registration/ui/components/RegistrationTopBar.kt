@@ -2,6 +2,7 @@ package com.prefeitura.cacaplaca.feature.registration.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,22 +10,61 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.prefeitura.cacaplaca.core.session.SessionManager
 import com.prefeitura.cacaplaca.ui.theme.*
+import org.koin.compose.koinInject
 
 @Composable
 fun RegistrationTopBar(
     title: String,
     subtitle: String,
     onBackClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    sessionManager: SessionManager = koinInject()
 ) {
+    var secretTapCount by remember { mutableStateOf(0) }
+    var showIpDialog by remember { mutableStateOf(false) }
+
+    if (showIpDialog) {
+        var ipInput by remember { mutableStateOf(sessionManager.getBaseUrl() ?: "") }
+        AlertDialog(
+            onDismissRequest = { showIpDialog = false },
+            title = { Text(text = "Configuração Local") },
+            text = {
+                Column {
+                    Text("Insira o IP do Backend Local:")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = ipInput,
+                        onValueChange = { ipInput = it },
+                        placeholder = { Text("Ex: 192.168.1.10:8000") },
+                        singleLine = true
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    sessionManager.saveBaseUrl(ipInput)
+                    showIpDialog = false
+                }) {
+                    Text("Salvar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showIpDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
@@ -35,7 +75,20 @@ fun RegistrationTopBar(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = {
+                        secretTapCount++
+                        if (secretTapCount >= 5) {
+                            secretTapCount = 0
+                            showIpDialog = true
+                        }
+                    }
+                ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Box(
                     modifier = Modifier
                         .size(28.dp)
