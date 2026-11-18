@@ -200,7 +200,7 @@ class RegistrationRepository(
             )
 
             if (response.isSuccessful) {
-                if (file.exists()) file.delete()
+                // Refresh cache from API after successful submission
                 try {
                     val listResponse = api.listPlacas()
                     if (listResponse.isSuccessful && listResponse.body() != null) {

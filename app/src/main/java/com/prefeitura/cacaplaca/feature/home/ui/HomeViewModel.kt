@@ -19,12 +19,14 @@ class HomeViewModel(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
-        // Inicializa com o nome salvo, se existir
+        refreshUser()
+    }
+
+    fun refreshUser() {
         val savedName = sessionManager.getUserName()
         if (!savedName.isNullOrBlank()) {
             _uiState.update { it.copy(agentName = savedName) }
         } else {
-            // Se por algum motivo não houver nome salvo (usuário antigo), busca
             fetchUser()
         }
     }
