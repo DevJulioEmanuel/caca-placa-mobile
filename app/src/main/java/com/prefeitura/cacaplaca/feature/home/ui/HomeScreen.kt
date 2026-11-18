@@ -32,6 +32,8 @@ import com.prefeitura.cacaplaca.ui.theme.CacaPlacaTextSecondary
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaTheme
 import org.koin.androidx.compose.koinViewModel
 
+import androidx.lifecycle.compose.LifecycleResumeEffect
+
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -42,6 +44,11 @@ fun HomeScreen(
     onProfileClicked: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LifecycleResumeEffect(Unit) {
+        viewModel.refreshUser()
+        onPauseOrDispose { }
+    }
 
     HomeScreenContent(
         modifier = modifier,

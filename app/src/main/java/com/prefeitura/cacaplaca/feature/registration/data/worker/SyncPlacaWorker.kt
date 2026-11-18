@@ -26,14 +26,45 @@ class SyncPlacaWorker(
     override suspend fun doWork(): ListenableWorker.Result = withContext(Dispatchers.IO) {
         try {
             val pendingPlacas = placaDao.getPendingPlacas()
+            val pendingDeletions = placaDao.getPendingDeletions()
+            val pendingEventDeletions = placaDao.getPendingEventDeletions()
 
-            if (pendingPlacas.isEmpty()) {
+            if (pendingPlacas.isEmpty() && pendingDeletions.isEmpty() && pendingEventDeletions.isEmpty()) {
                 refreshCache()
                 return@withContext ListenableWorker.Result.success()
             }
 
             var allSuccess = true
 
+            // Sync pending event deletions
+            for (evDelEntity in pendingEventDeletions) {
+                try {
+                    val response = api.deleteEventoPlaca(evDelEntity.placaId, evDelEntity.eventoId)
+                    if (response.isSuccessful) {
+                        placaDao.deletePlacaEventDeleteSync(evDelEntity.id)
+                    } else {
+                        allSuccess = false
+                    }
+                } catch (_: Exception) {
+                    allSuccess = false
+                }
+            }
+
+            // Sync pending plate deletions
+            for (delEntity in pendingDeletions) {
+                try {
+                    val response = api.deletePlaca(delEntity.placaId)
+                    if (response.isSuccessful) {
+                        placaDao.deletePlacaDeleteSync(delEntity.id)
+                    } else {
+                        allSuccess = false
+                    }
+                } catch (_: Exception) {
+                    allSuccess = false
+                }
+            }
+
+            // Sync pending creations
             for (entity in pendingPlacas) {
                 val file = File(entity.localPhotoPath)
                 if (!file.exists()) {

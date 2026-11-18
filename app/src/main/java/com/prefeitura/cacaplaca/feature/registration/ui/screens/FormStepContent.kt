@@ -197,7 +197,7 @@ fun FormStepContent(
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = CacaPlacaOrange,
-                        contentColor = CacaPlacaTextPrimary,
+                        contentColor = SurfaceWhite,
                         disabledContainerColor = SurfaceWhite,
                         disabledContentColor = CacaPlacaTextSecondary
                     ),

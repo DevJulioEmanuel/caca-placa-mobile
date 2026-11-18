@@ -6,11 +6,14 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.prefeitura.cacaplaca.feature.registration.data.api.RegistrationApi
 import com.prefeitura.cacaplaca.feature.registration.data.local.dao.PlacaDao
+import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaDeleteSyncEntity
+import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaEventDeleteSyncEntity
 import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaSyncEntity
 import com.prefeitura.cacaplaca.feature.registration.data.model.CapturedPhoto
 import com.prefeitura.cacaplaca.core.model.PlacaCreateData
 import com.prefeitura.cacaplaca.feature.registration.data.mapper.toEntity
 import com.prefeitura.cacaplaca.feature.registration.data.mapper.toItemResponse
+import com.prefeitura.cacaplaca.feature.registration.data.model.EventoPlacaResponse
 import com.prefeitura.cacaplaca.feature.registration.data.model.PlacaListResponse
 import com.prefeitura.cacaplaca.feature.registration.data.worker.SyncPlacaWorker
 import kotlinx.coroutines.Dispatchers
@@ -70,9 +73,102 @@ class RegistrationRepository(
             } else {
                 Result.failure(fallbackException)
             }
-        } catch (dbException: Exception) {
+        } catch (_: Exception) {
             Result.failure(fallbackException)
         }
+    }
+
+    suspend fun listEventos(placaId: String, cachedUltimoEvento: EventoPlacaResponse?): Result<List<EventoPlacaResponse>> = withContext(Dispatchers.IO) {
+        try {
+            val response = api.listEventosPlaca(placaId)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                val fallback = cachedUltimoEvento?.let { listOf(it) } ?: emptyList()
+                Result.success(fallback)
+            }
+        } catch (e: Exception) {
+            val fallback = cachedUltimoEvento?.let { listOf(it) } ?: emptyList()
+            Result.success(fallback)
+        }
+    }
+
+    suspend fun deletePlaca(placaId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val response = api.deletePlaca(placaId)
+            if (response.isSuccessful) {
+                placaDao.deleteCachedPlaca(placaId)
+                try {
+                    val listResponse = api.listPlacas()
+                    if (listResponse.isSuccessful && listResponse.body() != null) {
+                        placaDao.insertCachedPlacas(listResponse.body()!!.items.map { it.toEntity() })
+                    }
+                } catch (_: Exception) {}
+
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(extractErrorDetail(response)))
+            }
+        } catch (e: IOException) {
+            saveDeleteLocallyAndEnqueueWork(placaId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    private suspend fun saveDeleteLocallyAndEnqueueWork(placaId: String) {
+        val entity = PlacaDeleteSyncEntity(placaId = placaId)
+        placaDao.insertPlacaDeleteSync(entity)
+        placaDao.deleteCachedPlaca(placaId)
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val syncWorkRequest = OneTimeWorkRequestBuilder<SyncPlacaWorker>()
+            .setConstraints(constraints)
+            .build()
+
+        workManager.enqueue(syncWorkRequest)
+    }
+
+    suspend fun deleteEventoPlaca(placaId: String, eventoId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val response = api.deleteEventoPlaca(placaId, eventoId)
+            if (response.isSuccessful) {
+                try {
+                    val listResponse = api.listPlacas()
+                    if (listResponse.isSuccessful && listResponse.body() != null) {
+                        placaDao.insertCachedPlacas(listResponse.body()!!.items.map { it.toEntity() })
+                    }
+                } catch (_: Exception) {}
+
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(extractErrorDetail(response)))
+            }
+        } catch (e: IOException) {
+            saveEventDeleteLocallyAndEnqueueWork(placaId, eventoId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    private suspend fun saveEventDeleteLocallyAndEnqueueWork(placaId: String, eventoId: String) {
+        val entity = PlacaEventDeleteSyncEntity(placaId = placaId, eventoId = eventoId)
+        placaDao.insertPlacaEventDeleteSync(entity)
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val syncWorkRequest = OneTimeWorkRequestBuilder<SyncPlacaWorker>()
+            .setConstraints(constraints)
+            .build()
+
+        workManager.enqueue(syncWorkRequest)
     }
 
     suspend fun submitRegistration(
@@ -104,7 +200,6 @@ class RegistrationRepository(
             )
 
             if (response.isSuccessful) {
-                if (file.exists()) file.delete()
                 // Refresh cache from API after successful submission
                 try {
                     val listResponse = api.listPlacas()
@@ -148,7 +243,7 @@ class RegistrationRepository(
         placaDao.insertPlacaSync(entity)
 
         val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED) // Só roda quando tiver internet
+            .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
         val syncWorkRequest = OneTimeWorkRequestBuilder<SyncPlacaWorker>()
