@@ -62,13 +62,50 @@ val networkModule = module {
             level = HttpLoggingInterceptor.Level.HEADERS
         }
 
+        val tokenAuthenticator = com.prefeitura.cacaplaca.core.network.TokenAuthenticator()
+
         OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             .addInterceptor(dynamicUrlInterceptor)
             .addInterceptor(authInterceptor)
+            .authenticator(tokenAuthenticator)
             .addInterceptor(logging)
+            .build()
+    }
+
+    single(org.koin.core.qualifier.named("bareOkHttp")) {
+        val dynamicUrlInterceptor = Interceptor { chain ->
+            val sessionManager = GlobalContext.get().get<SessionManager>()
+            var request = chain.request()
+            val customUrl = sessionManager.getBaseUrl()
+            
+            if (!customUrl.isNullOrEmpty()) {
+                val formattedUrl = if (!customUrl.startsWith("http://") && !customUrl.startsWith("https://")) {
+                    "https://$customUrl"
+                } else {
+                    customUrl
+                }
+                
+                val newBaseUrl = formattedUrl.toHttpUrlOrNull()
+                if (newBaseUrl != null) {
+                    val newUrl = request.url.newBuilder()
+                        .scheme(newBaseUrl.scheme)
+                        .host(newBaseUrl.host)
+                        .port(newBaseUrl.port)
+                        .build()
+                    request = request.newBuilder().url(newUrl).build()
+                }
+            }
+            chain.proceed(request)
+        }
+
+        OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor(dynamicUrlInterceptor)
             .build()
     }
 
@@ -78,6 +115,15 @@ val networkModule = module {
             .client(get())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+    }
+
+    single(org.koin.core.qualifier.named("refreshApi")) {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(get(org.koin.core.qualifier.named("bareOkHttp")))
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(AuthApi::class.java)
     }
 
     single { get<Retrofit>().create(AuthApi::class.java) }
