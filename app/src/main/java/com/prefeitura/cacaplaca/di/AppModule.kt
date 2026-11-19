@@ -40,6 +40,7 @@ val databaseModule = module {
         ).fallbackToDestructiveMigration(dropAllTables = true).build()
     }
     single { get<AppDatabase>().placaDao() }
+    single { get<AppDatabase>().profileDao() }
 }
 
 val workerModule = module {

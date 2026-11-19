@@ -9,17 +9,22 @@ import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaEven
 import com.prefeitura.cacaplaca.feature.registration.data.local.entity.PlacaSyncEntity
 import com.prefeitura.cacaplaca.feature.update.data.local.entity.PlacaUpdateSyncEntity
 
+import com.prefeitura.cacaplaca.feature.profile.data.local.dao.ProfileDao
+import com.prefeitura.cacaplaca.feature.profile.data.local.entity.UserProfileEntity
+
 @Database(
     entities = [
         PlacaSyncEntity::class,
         CachedPlacaEntity::class,
         PlacaDeleteSyncEntity::class,
         PlacaEventDeleteSyncEntity::class,
-        PlacaUpdateSyncEntity::class
+        PlacaUpdateSyncEntity::class,
+        UserProfileEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun placaDao(): PlacaDao
+    abstract fun profileDao(): ProfileDao
 }
