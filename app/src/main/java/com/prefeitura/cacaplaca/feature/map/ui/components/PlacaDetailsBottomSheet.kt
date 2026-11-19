@@ -17,6 +17,7 @@ fun PlacaDetailsBottomSheet(
     placa: PlacaUiModel?,
     events: List<EventoPlacaUiModel>,
     onDismiss: () -> Unit,
+    onUpdateClick: (PlacaUiModel) -> Unit,
     onDeleteClick: (String) -> Unit,
     onDeleteEventoClick: (String, String) -> Unit
 ) {
@@ -32,6 +33,7 @@ fun PlacaDetailsBottomSheet(
                 placa = placa,
                 events = events,
                 onDismiss = onDismiss,
+                onUpdateClick = { onUpdateClick(placa) },
                 onDeleteClick = {
                     placa.id?.let { onDeleteClick(it) }
                 },

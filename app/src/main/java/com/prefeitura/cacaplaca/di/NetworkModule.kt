@@ -13,7 +13,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
-val BASE_URL = "http://cacaplaca-api.duckdns.org/"
+val BASE_URL = "https://cacaplaca-api.duckdns.org/"
 
 val networkModule = module {
 
@@ -25,7 +25,7 @@ val networkModule = module {
             
             if (!customUrl.isNullOrEmpty()) {
                 val formattedUrl = if (!customUrl.startsWith("http://") && !customUrl.startsWith("https://")) {
-                    "http://$customUrl"
+                    "https://$customUrl"
                 } else {
                     customUrl
                 }
