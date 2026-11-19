@@ -63,8 +63,8 @@ private fun formatPhotoUrl(fotoUrl: String?, sessionManager: SessionManager): St
         return fotoUrl
     }
     val baseUrl = sessionManager.getBaseUrl()?.let {
-        if (!it.startsWith("http://") && !it.startsWith("https://")) "http://$it" else it
-    } ?: "http://cacaplaca-api.duckdns.org"
+        if (!it.startsWith("http://") && !it.startsWith("https://")) "https://$it" else it
+    } ?: "https://cacaplaca-api.duckdns.org"
     val cleanBaseUrl = if (baseUrl.endsWith("/")) baseUrl.dropLast(1) else baseUrl
     val cleanPath = if (fotoUrl.startsWith("/")) fotoUrl else "/$fotoUrl"
     return "$cleanBaseUrl$cleanPath"
@@ -89,6 +89,7 @@ fun PlacaDetailsCard(
     placa: PlacaUiModel,
     events: List<EventoPlacaUiModel>,
     onDismiss: () -> Unit,
+    onUpdateClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onDeleteEventoClick: (String, String) -> Unit,
     modifier: Modifier = Modifier,
@@ -98,6 +99,16 @@ fun PlacaDetailsCard(
     var selectedTab by remember(placa.id) { mutableStateOf(0) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var eventoToDelete by remember { mutableStateOf<EventoPlacaUiModel?>(null) }
+    var showFullImage by remember { mutableStateOf(false) }
+    var fullImageUrl by remember { mutableStateOf<String?>(null) }
+
+    if (showFullImage && fullImageUrl != null) {
+        com.prefeitura.cacaplaca.ui.components.FullScreenImageDialog(
+            imageUrl = fullImageUrl,
+            localPhotoPath = null,
+            onDismiss = { showFullImage = false }
+        )
+    }
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -406,7 +417,12 @@ fun PlacaDetailsCard(
                         AsyncImage(
                             model = fotoUrl,
                             contentDescription = "Foto da placa",
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable {
+                                    fullImageUrl = fotoUrl
+                                    showFullImage = true
+                                },
                             contentScale = ContentScale.Crop
                         )
                     } else {
@@ -563,19 +579,35 @@ fun PlacaDetailsCard(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                OutlinedButton(
+                Button(
+                    onClick = onUpdateClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = CacaPlacaOrange)
+                ) {
+                    Text(
+                        text = "Atualizar placa",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                        color = Color.White
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Button(
                     onClick = { showDeleteDialog = true },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, Color(0xFFD32F2F)),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD32F2F))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
                 ) {
                     Text(
                         text = "Excluir placa",
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        color = Color(0xFFD32F2F)
+                        color = Color.White
                     )
                 }
             }

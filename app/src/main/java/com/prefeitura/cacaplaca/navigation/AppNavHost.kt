@@ -9,6 +9,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.runtime.LaunchedEffect
 import com.prefeitura.cacaplaca.feature.auth.ui.LoginScreen
 import com.prefeitura.cacaplaca.feature.auth.ui.RecoverPasswordScreen
 import com.prefeitura.cacaplaca.feature.home.ui.HomeScreen
@@ -43,6 +44,14 @@ fun AppNavHost(
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+
+    LaunchedEffect(Unit) {
+        sessionManager.sessionExpiredFlow.collect {
+            navController.navigate(Screen.Auth) {
+                popUpTo(0)
+            }
+        }
+    }
 
     val showBottomBar = currentDestination?.hasRoute<Screen.Home>() == true ||
             currentDestination?.hasRoute<Screen.Map>() == true ||
@@ -107,7 +116,7 @@ fun AppNavHost(
                 modifier = Modifier,
                 onViewPlatesClicked = {
                     navController.navigate(Screen.Map) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        popUpTo(Screen.Home) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
@@ -117,14 +126,14 @@ fun AppNavHost(
                 },
                 onUpdatePlateClicked = {
                     navController.navigate(Screen.Map) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        popUpTo(Screen.Home) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
                 },
                 onProfileClicked = {
                     navController.navigate(Screen.Profile) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        popUpTo(Screen.Home) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
@@ -140,7 +149,7 @@ fun AppNavHost(
                 },
                 onProfileClicked = {
                     navController.navigate(Screen.Profile) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        popUpTo(Screen.Home) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }

@@ -15,6 +15,9 @@ interface AuthApi {
         @Field("password") password: String
     ): Response<LoginResponse>
 
+    @POST("auth/refresh")
+    fun refreshToken(@Body request: RefreshRequest): retrofit2.Call<LoginResponse>
+
     @POST("auth/forgot-password")
     suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<Unit>
 

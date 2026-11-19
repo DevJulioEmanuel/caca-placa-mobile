@@ -61,7 +61,7 @@ fun CacaPlacaBottomBar(
                 selected = isSelected,
                 onClick = {
                     navController.navigate(item.route) {
-                        popUpTo(navController.graph.startDestinationId) {
+                        popUpTo(Screen.Home) {
                             saveState = true
                         }
                         launchSingleTop = true

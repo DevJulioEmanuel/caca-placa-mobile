@@ -217,6 +217,8 @@ fun FormStepContent(
                     )
                 }
             }
+            
+            Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.ime))
         }
     }
 }

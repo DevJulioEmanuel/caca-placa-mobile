@@ -19,12 +19,23 @@ class SessionManager(context: Context) {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
+    private val _sessionExpiredFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val sessionExpiredFlow: kotlinx.coroutines.flow.SharedFlow<Unit> = _sessionExpiredFlow
+
     fun saveToken(token: String) {
         prefs.edit().putString(KEY_TOKEN, token).commit()
     }
 
     fun getToken(): String? {
         return prefs.getString(KEY_TOKEN, null)
+    }
+
+    fun saveRefreshToken(token: String) {
+        prefs.edit().putString(KEY_REFRESH_TOKEN, token).commit()
+    }
+
+    fun getRefreshToken(): String? {
+        return prefs.getString(KEY_REFRESH_TOKEN, null)
     }
 
     fun saveUserName(userName: String) {
@@ -40,7 +51,8 @@ class SessionManager(context: Context) {
     }
 
     fun clearSession() {
-        prefs.edit().clear().commit()
+        prefs.edit().remove(KEY_TOKEN).remove(KEY_REFRESH_TOKEN).remove(KEY_USER_NAME).commit()
+        _sessionExpiredFlow.tryEmit(Unit)
     }
 
     fun saveBaseUrl(url: String) {
@@ -54,6 +66,7 @@ class SessionManager(context: Context) {
     companion object {
         private const val PREF_NAME = "cacaplaca_secure_session"
         private const val KEY_TOKEN = "jwt_token"
+        private const val KEY_REFRESH_TOKEN = "jwt_refresh_token"
         private const val KEY_USER_NAME = "user_name"
         private const val KEY_BASE_URL = "custom_base_url"
     }

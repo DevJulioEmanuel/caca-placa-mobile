@@ -48,6 +48,8 @@ import com.prefeitura.cacaplaca.feature.map.ui.components.OfflineBannerOverlay
 import com.prefeitura.cacaplaca.feature.map.ui.components.PlacaDetailsBottomSheet
 import com.prefeitura.cacaplaca.feature.map.ui.viewmodel.MapViewModel
 import com.prefeitura.cacaplaca.ui.components.CacaPlacaHeader
+import com.prefeitura.cacaplaca.feature.map.data.mapper.toResponse
+import com.prefeitura.cacaplaca.feature.update.ui.UpdatePlacaDialog
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaBackground
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaNavy
 import com.prefeitura.cacaplaca.ui.theme.CacaPlacaTextPrimary
@@ -71,6 +73,22 @@ fun MapScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     var mapLibreMapRef by remember { mutableStateOf<MapLibreMap?>(null) }
+    var placaToUpdate by remember { mutableStateOf<com.prefeitura.cacaplaca.feature.registration.data.model.PlacaItemResponse?>(null) }
+
+    if (placaToUpdate != null) {
+        UpdatePlacaDialog(
+            placa = placaToUpdate!!,
+            onDismiss = { placaToUpdate = null },
+            onUpdateSuccess = {
+                placaToUpdate = null
+                viewModel.loadPlacas()
+                val current = uiState.selectedPlaca
+                if (current != null) {
+                    viewModel.selectPlaca(current)
+                }
+            }
+        )
+    }
 
     LaunchedEffect(Unit) {
         viewModel.loadPlacas()
@@ -206,6 +224,9 @@ fun MapScreen(
                 placa = uiState.selectedPlaca,
                 events = uiState.selectedPlacaEvents,
                 onDismiss = { viewModel.clearSelectedPlaca() },
+                onUpdateClick = { placa ->
+                    placaToUpdate = placa.toResponse()
+                },
                 onDeleteClick = { placaId ->
                     viewModel.deletePlaca(placaId)
                 },

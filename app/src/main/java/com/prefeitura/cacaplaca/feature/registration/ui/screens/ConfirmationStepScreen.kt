@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -25,6 +26,13 @@ import com.prefeitura.cacaplaca.feature.registration.ui.components.RegistrationT
 import com.prefeitura.cacaplaca.feature.registration.ui.state.*
 import com.prefeitura.cacaplaca.ui.theme.*
 import java.io.File
+
+import com.prefeitura.cacaplaca.ui.components.FullScreenImageDialog
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.clickable
 
 @Composable
 fun ConfirmationStepContent(
@@ -39,6 +47,15 @@ fun ConfirmationStepContent(
     modifier: Modifier = Modifier
 ) {
     val isSynced = status == ConfirmationSyncStatus.SYNCED
+    var showFullImage by remember { mutableStateOf(false) }
+
+    if (showFullImage && photoPath != null) {
+        FullScreenImageDialog(
+            imageUrl = null,
+            localPhotoPath = photoPath,
+            onDismiss = { showFullImage = false }
+        )
+    }
 
     Column(
         modifier = modifier
@@ -105,7 +122,7 @@ fun ConfirmationStepContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(CacaPlacaNavy)
+                            .background(if (isSynced) Color(0xFFE8F5E9) else CacaPlacaNavy)
                             .padding(16.dp)
                     ) {
                         Column {
@@ -113,14 +130,14 @@ fun ConfirmationStepContent(
                                 Icon(
                                     imageVector = if (isSynced) Icons.Outlined.CloudDone else Icons.Outlined.CloudOff,
                                     contentDescription = null,
-                                    tint = SurfaceWhite,
+                                    tint = if (isSynced) Color(0xFF2E7D32) else SurfaceWhite,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = if (isSynced) "Sincronizado" else "Aguardando sincronização",
                                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = SurfaceWhite
+                                    color = if (isSynced) Color(0xFF2E7D32) else SurfaceWhite
                                 )
                             }
                             Spacer(modifier = Modifier.height(6.dp))
@@ -131,7 +148,7 @@ fun ConfirmationStepContent(
                                     "O cadastro será sincronizado automaticamente quando houver conexão."
                                 },
                                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
-                                color = SurfaceWhite.copy(alpha = 0.9f)
+                                color = if (isSynced) Color(0xFF2E7D32).copy(alpha = 0.9f) else SurfaceWhite.copy(alpha = 0.9f)
                             )
                         }
                     }
@@ -143,7 +160,8 @@ fun ConfirmationStepContent(
                             photoPath = photoPath,
                             agentName = agentName,
                             date = date,
-                            showPhotoPreview = true
+                            showPhotoPreview = true,
+                            onPhotoClick = { showFullImage = true }
                         )
                     } else {
                         Spacer(modifier = Modifier.height(14.dp))
@@ -224,7 +242,8 @@ private fun PlateSummaryBox(
     agentName: String,
     date: String,
     showPhotoPreview: Boolean,
-    hasBorder: Boolean = true
+    hasBorder: Boolean = true,
+    onPhotoClick: (() -> Unit)? = null
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -249,6 +268,7 @@ private fun PlateSummaryBox(
                         .fillMaxWidth()
                         .height(150.dp)
                         .clip(RoundedCornerShape(10.dp))
+                        .clickable(enabled = onPhotoClick != null) { onPhotoClick?.invoke() }
                 )
             }
 
