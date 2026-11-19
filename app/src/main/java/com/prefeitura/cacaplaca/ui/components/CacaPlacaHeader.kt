@@ -64,7 +64,7 @@ fun CacaPlacaHeader(
                     OutlinedTextField(
                         value = ipInput,
                         onValueChange = { ipInput = it },
-                        placeholder = { Text("Ex: 192.168.1.10:8000") },
+                        placeholder = { Text("Ex: cacaplaca-api.duckdns.org") },
                         singleLine = true
                     )
                 }

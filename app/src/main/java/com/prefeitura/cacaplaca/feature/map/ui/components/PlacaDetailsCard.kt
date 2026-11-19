@@ -64,7 +64,7 @@ private fun formatPhotoUrl(fotoUrl: String?, sessionManager: SessionManager): St
     }
     val baseUrl = sessionManager.getBaseUrl()?.let {
         if (!it.startsWith("http://") && !it.startsWith("https://")) "http://$it" else it
-    } ?: "http://192.168.18.252:8000"
+    } ?: "http://cacaplaca-api.duckdns.org"
     val cleanBaseUrl = if (baseUrl.endsWith("/")) baseUrl.dropLast(1) else baseUrl
     val cleanPath = if (fotoUrl.startsWith("/")) fotoUrl else "/$fotoUrl"
     return "$cleanBaseUrl$cleanPath"

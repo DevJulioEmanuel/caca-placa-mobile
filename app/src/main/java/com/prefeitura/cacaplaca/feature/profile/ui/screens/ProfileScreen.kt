@@ -119,14 +119,35 @@ fun ProfileScreen(
                     CircularProgressIndicator(color = CacaPlacaOrange)
                 }
                 uiState.errorMessage != null -> {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(text = uiState.errorMessage!!, color = Color.Red)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(20.dp)
+                    ) {
+                        Text(text = uiState.errorMessage!!, color = Color.Red, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
                             onClick = { viewModel.fetchProfile() },
                             colors = ButtonDefaults.buttonColors(containerColor = CacaPlacaOrange)
                         ) {
-                            Text("Tentar Novamente")
+                            Text("Tentar Novamente", color = Color.White)
+                        }
+
+                        Spacer(modifier = Modifier.height(48.dp))
+
+                        Button(
+                            onClick = onLogoutClicked,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFEE2E2),
+                                contentColor = Color(0xFFDC2626)
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Sair")
+                            Spacer(Modifier.width(8.dp))
+                            Text("Sair da conta", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }

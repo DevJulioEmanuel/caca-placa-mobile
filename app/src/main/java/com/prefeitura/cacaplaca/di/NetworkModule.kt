@@ -13,7 +13,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
-val BASE_URL = "http://192.168.18.252:8000/"
+val BASE_URL = "http://cacaplaca-api.duckdns.org/"
 
 val networkModule = module {
 
