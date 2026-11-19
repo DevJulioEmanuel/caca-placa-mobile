@@ -107,7 +107,7 @@ fun AppNavHost(
                 modifier = Modifier,
                 onViewPlatesClicked = {
                     navController.navigate(Screen.Map) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        popUpTo(Screen.Home) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
@@ -117,14 +117,14 @@ fun AppNavHost(
                 },
                 onUpdatePlateClicked = {
                     navController.navigate(Screen.Map) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        popUpTo(Screen.Home) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
                 },
                 onProfileClicked = {
                     navController.navigate(Screen.Profile) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        popUpTo(Screen.Home) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
@@ -140,7 +140,7 @@ fun AppNavHost(
                 },
                 onProfileClicked = {
                     navController.navigate(Screen.Profile) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        popUpTo(Screen.Home) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }

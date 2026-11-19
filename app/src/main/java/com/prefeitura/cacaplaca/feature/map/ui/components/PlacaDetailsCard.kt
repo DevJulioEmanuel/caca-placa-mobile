@@ -579,37 +579,35 @@ fun PlacaDetailsCard(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                OutlinedButton(
+                Button(
                     onClick = onUpdateClick,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, CacaPlacaOrange),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = CacaPlacaOrange)
+                    colors = ButtonDefaults.buttonColors(containerColor = CacaPlacaOrange)
                 ) {
                     Text(
                         text = "Atualizar placa",
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        color = CacaPlacaOrange
+                        color = Color.White
                     )
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                OutlinedButton(
+                Button(
                     onClick = { showDeleteDialog = true },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, Color(0xFFD32F2F)),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD32F2F))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
                 ) {
                     Text(
                         text = "Excluir placa",
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        color = Color(0xFFD32F2F)
+                        color = Color.White
                     )
                 }
             }
